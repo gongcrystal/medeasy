@@ -1,0 +1,47 @@
+package com.medimpact.medeasy.common.bean.security;
+
+import java.io.Serializable;
+
+import com.medimpact.medeasy.common.RequestParameter;
+
+public class SecRole   extends RequestParameter implements Serializable {
+
+	private static final long serialVersionUID = -4769185837699343856L;
+	
+	private Integer id;
+	private String name;
+	private String description;
+	private boolean enabled;
+	
+	public SecRole() {
+		super();
+	}
+	public Integer getId() {
+		return id;
+	}
+	public void setId(Integer id) {
+		this.id = id;
+	}
+	public String getName() {
+		return name;
+	}
+	public void setName(String name) {
+		this.name = name;
+	}
+	public String getDescription() {
+		return description;
+	}
+	public void setDescription(String description) {
+		this.description = description;
+	}
+/*	public boolean isEnabled() {
+		return enabled;
+	}*/
+	public void setEnabled(boolean enabled) {
+		this.enabled = enabled;
+	}
+	
+	public boolean getEnabled(){
+		return enabled;
+	}
+}

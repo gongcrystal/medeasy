@@ -1,0 +1,34 @@
+package com.medimpact.medeasy.web.module;
+
+import java.util.List;
+
+import javax.annotation.Resource;
+
+import org.springframework.http.MediaType;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import com.medimpact.medeasy.common.bean.MenuBi;
+import com.medimpact.medeasy.service.module.ModuleService;
+
+@Controller
+@RequestMapping("/module")
+public class ModuleCtrl {
+	
+	@Resource
+	private ModuleService moduleService;
+	
+	
+	/*所有菜单并填充每个菜单的子菜单列表*/
+	@RequestMapping(value = "/listChildren", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+	@ResponseBody
+	public List<MenuBi>  listChildrenByParentId (@RequestParam("parentId") Integer parentId) {
+		System.out.println("parentId="+parentId);
+		List<MenuBi> list = moduleService.listAllChildren(parentId);		
+		return list;
+	}
+
+}

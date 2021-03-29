@@ -1,0 +1,326 @@
+<div id="pg_grid-pager" class="ui-pager-control" role="group" th:fragment="btngroup1">
+	<table class="ui-pg-table ui-common-table ui-pager-table ">
+		<tbody>
+			<tr>
+				<td id="grid-pager_left" align="left"><table class="ui-pg-table navtable ui-common-table">
+						<tbody>
+							<tr>
+								<td class="ui-pg-button ui-corner-all" title="添加" id="add_grid-table"><div class="ui-pg-div">
+										<span class="ui-icon ace-icon fa fa-plus-circle purple"></span>
+									</div></td>
+								<td class="ui-pg-button ui-corner-all" title="修改" id="edit_grid-table"><div class="ui-pg-div">
+										<span class="ui-icon ace-icon fa fa-pencil blue"></span>
+									</div></td>
+								<td class="ui-pg-button ui-corner-all" title="查看" id="view_grid-table"><div class="ui-pg-div">
+										<span class="ui-icon ace-icon fa fa-search-plus grey"></span>
+									</div></td>
+								<td class="ui-pg-button ui-state-disabled" style="width: 4px;"><span class="ui-separator"></span></td>
+
+								<td class="ui-pg-button ui-corner-all" title="刷新" id="refresh_grid-table"><div class="ui-pg-div">
+										<span class="ui-icon ace-icon fa fa-refresh green"></span>
+									</div></td>
+							</tr>
+						</tbody>
+					</table></td>
+				<td id="grid-pager_center" style="white-space: pre;" align="center"><table class="ui-pg-table ui-common-table ui-paging-pager">
+						<tbody>
+							<tr></tr>
+						</tbody>
+					</table></td>
+				<td id="grid-pager_right" align="right"></td>
+			</tr>
+		</tbody>
+	</table>
+</div>
+
+<select class='form-control' id='hospital' name="hospitalCode" th:fragment="hospitalSelect" style="width: 150px">
+	<option value="#">医院名称:请选择</option>
+</select>
+
+<!-- 可以检索的hospital -->
+<select class='chosen-select form-control' id='hospitalSelectSearchId' name="hospitalCode" data-placeholder="选择医院"
+	th:fragment="hospitalSelectWithSearch">
+	<!-- <option value="#">医院:请选择</option>	 -->
+	<!-- <option value="">  </option> -->
+	<option value="#">医院名称:请选择</option>
+</select>
+
+<select class='form-control' id='areaSelect' name="areaCode" th:fragment="areaSelect">
+	<option value="#">区名称:请选择</option>
+</select>
+
+<select class='form-control' id='rxSelect' name="patientType" th:fragment="rxSelect" style="width: 150px">
+	<!-- <option value="#">处方类型:请选择</option> -->
+</select>
+
+<select multiple="" class="chosen-select form-control" id='alarmTypeSelect' name="alarmType" th:fragment="alarmTypeSelect" data-placeholder="报警类型:请选择">
+	<!-- <option >报警类型:请选择</option> -->
+	<option value="C_1">儿童用药禁忌2</option>
+	<option value="C_2">老年用药禁忌</option>
+	<option value="C_3">女性用药禁忌</option>
+	<option value="C_4">男性用药禁忌</option>
+	<option value="C_5">非适应症用药</option>
+	<option value="C_6">治疗重复</option>
+	<option value="C_7">成分重复</option>
+	<option value="C_8">药品与疾病冲突</option>
+	<option value="C_10">药品与药品冲突</option>
+	<option value="C_12">剂量过高</option>
+	<option value="C_13">给药途径报警</option>
+	<option value="C_15">剂量过低</option>
+	<option value="C_17">哺乳期用药禁忌</option>
+	<option value="C_18">不良反应</option>
+	<option value="C_19">妊娠期用药禁忌</option>
+	<option value="C_20">注射液配伍禁忌</option>
+	<option value="C_23">过敏史用药禁忌</option>
+</select>
+
+<select class='form-control multiselect' multiple="" id='alarmLevelSelect' name="alarmLevel" th:fragment="alarmLevelSelect" style="width: 150px">
+	<option >报警级别:请选择</option>
+</select>
+
+
+<!-- 可选择到天 -->
+<div class="input-daterange input-group input-sm" th:fragment="rangePicker" style="width: 300px" id="rangePicker2Day">
+	<input type="text" class="input-sm form-control" name="startDate" id="startDate" placeholder="起始日期" data-format="yyyy-MM" />
+	<span class="input-group-addon"> <i class="fa fa-exchange"></i>
+	</span>
+	<input type="text" class="input-sm form-control" name="endDate" id="endDate" placeholder="结束日期" data-format="yyyy-MM" />
+</div>
+<!-- 可选择到月 -->
+<div class="input-daterange input-group input-sm" th:fragment="rangePicker2Month" style="width: 300px" id="rangePicker2Month">
+	<input type="text" class="input-sm form-control" name="startDate" id="startDate" placeholder="起始日期" data-format="yyyy-MM" />
+	<span class="input-group-addon"> <i class="fa fa-exchange"></i>
+	</span>
+	<input type="text" class="input-sm form-control" name="endDate" id="endDate" placeholder="结束日期" data-format="yyyy-MM" />
+</div>
+
+
+<!-- 可选择到月 -->
+<div class="input-daterange input-group input-sm" th:fragment="rangePicker2Month1" style="width: 300px" id="rangePicker2Month1">
+	<input type="text" class="input-sm form-control" name="startDate" id="startDate1" placeholder="起始日期" data-format="yyyy-MM" />
+	<span class="input-group-addon"> <i class="fa fa-exchange"></i>
+	</span>
+	<input type="text" class="input-sm form-control" name="endDate" id="endDate1" placeholder="结束日期" data-format="yyyy-MM" />
+</div>
+
+<select class='form-control' id='stmSelect' name="stmType" th:fragment="stmSelect">
+	<option value="#">报表类型:请选择</option>
+</select>
+
+<select class='form-control' id='irritateSelect' name="irriteId" th:fragment="irritateSelect" placeholder="问题代码" style="width: 150px">
+	<option value="#">问题代码:请选择</option>
+</select>
+
+
+<!-- <div class="progress pos-rel" th:fragment="pbBlue" id="noOkPercent_out">
+	<div class="progress-bar" id="noOkPercent"></div>
+</div> -->
+
+<div class="progress progress-striped pos-rel" th:fragment="pbBlue" id="noOkPercent_out">
+	<div class="progress-bar  progress-bar-blue" style="width: 25%;" id="noOkPercent"></div>
+</div>
+
+<div class="progress progress-striped pos-rel" th:fragment="reasonRx" id="reasonRx_out">
+	<div class="progress-bar  progress-bar-success" style="width: 25%;" id="reasonRx"></div>
+</div>
+
+
+<div class="progress   progress-small progress-striped  pos-rel" th:fragment="pbGreenStrip" id="unReason3_out">
+	<div class="progress-bar    progress-bar-purple" style="width: 25%;" id="unReason3"></div>
+</div>
+
+<div class="progress   progress-small progress-striped  pos-rel" th:fragment="unReason2" id="unReason2_out">
+	<div class="progress-bar progress-bar-warning" style="width: 25%;" id="unReason2"></div>
+</div>
+
+<div class="progress   progress-small progress-striped  pos-rel" th:fragment="unReason1" id="unReason1_out">
+	<div class="progress-bar progress-bar-inverse" style="width: 25%;" id="unReason1"></div>
+</div>
+
+<div class="progress progress-small progress-striped active" th:fragment="pbYellowStripActive">
+	<div class="progress-bar progress-bar-warning" style="width: 40%;"></div>
+</div>
+
+
+<div class="progress progress-mini" th:fragment="pbBlueMini">
+	<div class="progress-bar progress-danger" style="width: 35%;"></div>
+</div>
+
+<div class="progress progress-striped " th:fragment="okRX" id="okRX_out">
+	<div class="progress-bar progress-bar-success" id="okRX"></div>
+</div>
+
+
+<div class="easy-pie-chart percentage" data-percent="55" data-color="#87CEEB" th:fragment="pieChartBlue">
+	<span class="percent">55</span>%
+</div>
+
+<!-- drug category modal -->
+<div class="modal fade" id="drugCategoryModal" th:fragment="drugCategoryModal" style="height: 600px">
+	<div class="modal-dialog">
+		<div class="modal-content">
+			<div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+				<h5 class="modal-title" style="font-weight: bold">
+					<span>药品与分类选择</span>
+				</h5>
+			</div>
+			<div class="modal-body">
+
+				<ul id="myTab_add" class="nav nav-tabs padding-12 tab-color-blue background-blue">
+					<li class="active"><a href="#tt0" data-toggle="tab">药品</a></li>
+					<li><a href="#tt1" data-toggle="tab">药品分类</a></li>
+				</ul>
+
+				<div id="myTabContent" class="tab-content">
+
+					<div class="tab-pane fade active in " id="tt0">
+						<!-- <div class="panel panel-default"> -->
+						<div class="panel-body">
+							药品名称：
+							<input type="text" id="drutItemName" value="" class="empty" />
+							<button type="button" class="btn btn-info btn-sm" id="drugItemSearchBtn">确定</button>
+							<!-- <button type="button" class="btn btn-default btn-sm" data-dismiss="modal">取消</button> -->
+							<div class="space"></div>
+							<div class="form-group">
+								<div>药品列表:</div>
+								<div class="col-sm-12" id="drugItemlist" style="overflow-y: auto; height: 300px">
+									<ul id="mzTree1" class="ztree" readonly="readonly" style="overflow: auto"></ul>
+								</div>
+
+								<div style="display: none" id="drugItemlist">
+									<ul id="mzTree2" class="ztree" readonly="readonly"></ul>
+								</div>
+
+								<!-- <div class="col-sm-12" style="height:600px;overflow: auto;"> -->
+							</div>
+							<!-- </div> -->
+						</div>
+					</div>
+
+					<div class="tab-pane fade" id="tt1">
+						<!-- <div class="panel panel-default"> -->
+						<div class="panel-body">
+
+							<form class="form-horizontal" id="addRoleForm" role="form">
+								<!-- <div class="row"> -->
+								分类名称：
+
+								<input id="drugCKeyword" class="empty" type="text" placeholder="">
+
+								<div class="btn-group">
+									<button type="button" class="btn  btn-info btn-sm" id="btnDrugCategory">确定</button>
+								</div>
+								<button type="button" class="btn btn-default btn-sm" data-dismiss="modal">取消</button>
+								<div class="col-sm-1" style="display: none">
+									<input id="drugCKeyword1" type="text">
+								</div>
+
+								<!-- </div> -->
+
+							</form>
+
+							<form class="form-horizontal" role="form">
+								<div class="form-group">
+									<label for="" class="col-sm-2 control-label">药品分类: </label>
+									<div class="col-sm-12" style="overflow-y: auto; height: 300px">
+										<ul id="mzTree" class="ztree" style="overflow: auto"></ul>
+									</div>
+								</div>
+							</form>
+
+						</div>
+						<!-- </div> -->
+					</div>
+
+				</div>
+
+				<div class="modal-footer"></div>
+			</div>
+
+
+		</div>
+
+	</div>
+	<!--end modal -->
+
+	<div class="form-group" style="margin-left: 10px" th:fragment="HLDrugCategory">
+		<label class="radio-inline">
+			<input type="radio" name="hLDrugCategory" id="rdAbx" value="2-1">
+			抗菌药
+		</label>
+		<label class="radio-inline">
+			<input type="radio" name="hLDrugCategory" id="rdBasicDrug" value="2-2">
+			基本药物
+		</label>
+		<label class="radio-inline">
+			<input type="radio" name="hLDrugCategory" id="rdIv" value="ZSJ">
+			注射剂
+		</label>
+		<label class="radio-inline">
+			<input type="radio" name="hLDrugCategory" id="rdWest" value="0-1">
+			西药
+		</label>
+		<label class="radio-inline">
+			<input type="radio" name="hLDrugCategory" id="rdHerbal" value="0-583">
+			中成药
+		</label>
+		<label class="radio-inline">
+			<input type="radio" name="hLDrugCategory" id="rdDrink" value="0-520">
+			饮片
+		</label>
+		<label class="radio-inline" id="lableNutr">
+			<input type="radio" name="hLDrugCategory" id="rdNutrition" value="2-4">
+			辅助用药&营养药
+		</label>
+		<label class="radio-inline" id="lableHerbalIv" style="display:none">
+			<input type="radio" name="hLDrugCategory" id="rdHervalIv" value="2-3">
+			中药注射剂
+		</label>
+		<label class="radio-inline"  style="display:none">
+			<input type="radio" name="hLDrugCategory" id="rdCancel" value="" >
+			取消选择
+		</label>
+	</div>
+
+
+
+
+	<!-- <div class="col-sm-8" th:fragment="rxEvaPB"> -->
+	<div th:fragment="rxEvaPB">
+		<!-- <div class="row"> -->
+		<!-- <div class="col-sm-8"> -->
+		<div class="form-group">
+			<label class="col-sm-4 control-label">不合理处方： </label>
+			<div class="col-sm-8" th:replace="components::pbBlue"></div>
+		</div>
+		<div class="form-group">
+			<label class="col-sm-4 control-label">超常处方： </label>
+			<div class="col-sm-8" th:replace="components::pbGreenStrip"></div>
+		</div>
+		<div class="form-group">
+			<label class="col-sm-4 control-label">用药不适宜处方： </label>
+			<div class="col-sm-8" th:replace="components::unReason2"></div>
+		</div>
+
+		<div class="form-group">
+			<label class="col-sm-4 control-label">用药不规范处方： </label>
+			<div class="col-sm-8" th:replace="components::unReason1"></div>
+		</div>
+
+		<div class="form-group">
+			<label class="col-sm-4 control-label">合理处方： </label>
+			<div class="col-sm-8" th:replace="components::reasonRx"></div>
+			<!-- </div> -->
+			<!-- </div> -->
+			<!-- <div class="col-s-4 center">
+							<div th:replace="components::pieChartBlue"></div>
+							<hr />
+							<div th:replace="components::pieChartBlue"></div>
+
+							<div class="easy-pie-chart percentage" data-percent="55" data-color="#87CEEB" th:fragment="pieChartBlue">
+								<span class="percent">55</span>%
+							</div>
+						</div> -->
+		</div>
+	</div>

@@ -1,0 +1,15 @@
+package com.medimpact.medeasy.dao.security;
+
+import java.util.List;
+import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
+
+import com.medimpact.medeasy.common.bean.basicdt.DrRank;
+import com.medimpact.medeasy.common.bean.security.SecRole;
+
+@Mapper
+public interface RoleDao {
+	public List<SecRole> getRolesByUserId(@Param("userId") int userId);
+	public List<SecRole> getRolesByHospital(String hospital);
+
+}

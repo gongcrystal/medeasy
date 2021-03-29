@@ -1,0 +1,13 @@
+package com.medimpact.medeasy.service.module;
+
+import java.util.List;
+
+import com.medimpact.medeasy.common.bean.MenuBi;
+import com.medimpact.medeasy.common.bean.ModuleBi;
+import com.medimpact.medeasy.common.exception.BizException;
+
+public interface ModuleService {
+	public List<ModuleBi> listChildrenByParentId(Integer id) throws BizException;
+	public List<ModuleBi> listAllChildren(Integer id)  throws BizException;
+
+}

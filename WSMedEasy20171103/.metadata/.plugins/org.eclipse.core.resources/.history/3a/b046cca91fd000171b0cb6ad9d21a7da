@@ -1,0 +1,10 @@
+package com.medimpact.medeasy.service.menu;
+
+import com.medimpact.medeasy.common.DataModel;
+import com.medimpact.medeasy.common.bean.RoleMenuBi;
+import com.medimpact.medeasy.common.form.RoleMenuForm;
+
+public interface RoleMenuService {
+	public DataModel addRoleMenu(RoleMenuForm form);
+
+}

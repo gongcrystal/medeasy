@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC   
+    "-//mybatis.org//DTD Mapper 3.0//EN"  
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.medimpact.medeasy.dao.menu.MenuDao">
+	<resultMap type="com.medimpact.medeasy.common.bean.MenuBi" id="menuResultMap">
+		<id column="MENU_ID" property="menuId" />
+		<result column="MENU_NAME" property="menuName" />
+		<result column="MENU_URL" property="menuUrl" />
+		<result column="PARENT_ID" property="parentId" />
+		<result column="MENU_ORDER" property="menuOrder" />
+		<result column="MENU_ICON" property="menuIcon" />
+		<result column="MENU_TYPE" property="menuType" />
+		<result column="MENU_STATE" property="menuState" />
+		<result column="HAS_SUBMENU" property="hasSubMenu" />
+		<result column="MENU_CODE" property="menuCode" />
+		<result column="MAX_ORDERSUBMENU" property="maxOrderSubMenu" />
+		<result column="MODULE_TYPE" property="moduleType" />
+	</resultMap>
+	
+	
+	<sql id="selects">
+		m.MENU_ID,m.MENU_NAME,MENU_URL,PARENT_ID,MENU_ORDER,MENU_ICON,MENU_TYPE,MENU_STATE,
+		HAS_SUBMENU,MENU_CODE,MAX_ORDERSUBMENU,MODULE_TYPE
+	</sql>
+	
+
+	<!--通过ID获取其子一级菜单 -->
+	<select id="listSubMenuByParentId" parameterType="int" resultMap="menuResultMap">
+		select * from sys_menu where PARENT_ID = #{parentId} AND module_type=0 order
+		by (MENU_ORDER+0)
+	</select>
+	
+	<select id="getMenusByRoleName" parameterType="string" resultMap="menuResultMap">
+		select		
+		<include refid="selects"></include> 		
+		from sys_menu m,role_menu rm where m.menu_id=rm.menu_id and rm.role_name=#{roleName}  AND m.module_type="0" or  m.module_type="3" order
+		by (MENU_ORDER+0)
+	</select>
+	
+	
+	<select id="getMaxSubByRoleName" parameterType="com.medimpact.medeasy.common.bean.RoleMenuBi" resultType="int">
+		SELECT max(menu_order) from sys_menu m, role_menu rm  WHERE m.parent_id = #{menuId}	AND  m.module_type="0"  or  m.module_type="3" AND rm.role_name=#{roleName}
+	</select>
+	
+	 <select id="getSubMenuByName" parameterType="com.medimpact.medeasy.common.bean.RoleMenuBi"  resultMap="menuResultMap">  
+		<!-- SELECT rm.* FROM role_module rm, module m where m.id=rm.id and m.url=#{url}; -->	
+		SELECT * from role_menu rm, sys_menu m WHERE rm.menu_id =  m.menu_id AND role_name=#{roleName}
+		AND m.parent_id=#{menuId}
+	</select>
+	
+</mapper>

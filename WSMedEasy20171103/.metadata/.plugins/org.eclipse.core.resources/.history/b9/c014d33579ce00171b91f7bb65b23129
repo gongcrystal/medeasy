@@ -1,0 +1,27 @@
+package com.medimpact.medeasy.web.security;
+
+import java.util.List;
+
+import org.springframework.http.MediaType;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.ResponseBody;
+import com.medimpact.medeasy.common.bean.security.SecRole;
+
+/**
+ * @author Crystal E-mail:
+ * @version 创建时间：2017年11月21日 类说明
+ */
+@Controller
+@RequestMapping("/role")
+public class RoleCtrl {
+	
+	@RequestMapping(value = "/getRoles", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+	@ResponseBody
+	
+	public DataModel<List<SecRole>> getRoles(SecRole form) {
+		return null;
+	}
+
+}

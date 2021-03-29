@@ -1,0 +1,461 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns:th="http://www.thymeleaf.org">
+<link>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1"></meta>
+    <meta charset="utf-8"></meta>
+    <meta name="_csrf" content="${_csrf.token}"></meta>
+    <meta name="_csrf_header" content="${_csrf.headerName}"></meta>
+    <meta name="description" content="overview &amp; stats"></meta>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"></meta>
+    <title>药品使用异动分析</title>
+    <link rel="stylesheet" href="../../../../plugins/ace/css/bootstrap.min.css" th:href="@{/plugins/ace/css/bootstrap.min.css}"></link>
+    <!--link rel="stylesheet" href="../../../../plugins/bootstrap-3.3.2/css/bootstrap.min.css" th:href="@{/plugins/bootstrap-3.3.2/css/bootstrap.min.css}"></link-->
+    <link rel="stylesheet" href="../../../../plugins/ace/font-awesome/4.5.0/css/font-awesome.min.css" th:href="@{/plugins/ace/font-awesome/4.5.0/css/font-awesome.min.css}"></link>
+    <link rel="stylesheet" href="../../../../plugins/ace/css/jquery-ui.min.css" th:href="@{/plugins/ace/css/jquery-ui.min.css}"></link>
+
+    <link rel="stylesheet" href="../../../../plugins/ace/css/chosen.min.css" th:href="@{/plugins/ace/css/chosen.min.css}"></link>
+
+    <link rel="stylesheet" href="../../../../plugins/ace/css/bootstrap-datepicker3.min.css" th:href="@{/plugins/ace/css/bootstrap-datepicker3.min.css}"></link>
+
+    <link rel="stylesheet" href="../../../../plugins/ace/css/jquery.gritter.min.css" th:href="@{/plugins/ace/css/jquery.gritter.min.css}"></link>
+
+    <link rel="stylesheet" href="../../../../plugins/ace/css/fonts.googleapis.com.css" th:href="@{/plugins/ace/css/fonts.googleapis.com.css}"></link>
+
+<link rel="stylesheet" href="../../../../plugins/datatable/datatables-1.10.16/css/jquery.dataTables.min.css" th:href="@{/plugins/datatable/datatables-1.10.16/css/jquery.dataTables.min.css}"></link>
+<link rel="stylesheet" href="../../../../plugins/datatable/FixedColumns-3.2.4/css/fixedColumns.dataTables.min.css" th:href="@{/plugins/datatable/FixedColumns-3.2.4/css/fixedColumns.bootstrap.min.css}"></link>
+
+<link rel="stylesheet" href="../../../../plugins/ace/css/ace.min.css" class="ace-main-stylesheet" id="main-ace-style" th:href="@{/plugins/ace/css/ace.min.css}"></link>
+
+    <link rel="stylesheet" href="../../../../plugins/zTree_v3-master/css/zTreeStyle/zTreeStyle.css" type="text/css" th:href="@{/plugins/zTree_v3-master/css/zTreeStyle/zTreeStyle.css}"></link>
+    <!--link rel="stylesheet" href="../../../../css/theme.css" type="text/css" th:href="@{/css/theme.css}"></link-->
+    <link rel="stylesheet" href="../../../../css/main.css" type="text/css" th:href="@{/css/main.css}"></link>
+
+
+    <!--link rel="stylesheet" href="../../../../plugins/DataTables-1.10.10/css/jquery.dataTables.min.css" th:href="@{/plugins/DataTables-1.10.10/css/jquery.dataTables.min.css}"></link-->
+
+    <!--link-- rel="stylesheet" href="../../../../plugins/ace/css/fixedColumns.dataTables.min.css" th:href="@{/plugins/ace/css/fixedColumns.dataTables.min.css}"></link-->
+    <!--[if lte IE 9]>
+    <link rel="stylesheet" href="../../../../plugins/ace/css/ace-part2.css"  class="ace-main-stylesheet" th:href="@{/plugins/ace/css/ace-part2.css}"></link>
+    <![endif]-->
+
+    <!--[if lte IE 9]>
+    <link rel="stylesheet" href="../../../../plugins/ace/css/ace-ie.min.css"  class="ace-main-stylesheet" th:href="@{/plugins/ace/css/ace-ie.min.css}"></link>
+    <![endif]-->
+
+
+    <!-- ace settings handler -->
+    <script src="../../../plugins/ace/js/ace-extra.min.js" th:src="@{/plugins/ace/js/ace-extra.min.js}"></script>
+    <!--[if lte IE 8]>
+    <script src="../../../../plugins/ace/js/html5shiv.min.js"  th:src="@{/plugins/ace/js/html5shiv.min.js}"></script>
+    <script src="../../../../plugins/ace/js/respond.min.js"  th:src="@{/plugins/ace/js/respond.min.js}"></script>
+    <![endif]-->
+
+
+<style type="text/css">
+    th, td { white-space: nowrap; }
+    /*#dynamic-table{*/
+        /*width: 100% !important;*/
+    /*}*/
+
+    /*调整表格里的搜索框的位置*/
+    #dynamic-table_filter {/*浮动搜索框位置控制开始*/
+        position: absolute;
+        top: -34px;
+        right: 0px;
+        z-index: 2;
+        width:400px;
+    }
+    #dynamic-table_filter label {
+        color: #fff;
+    }
+    #dynamic-table_filter input[type=search]{width:200px;border-radius:0px!important;}
+    /*调整表格里的搜索框的位置*/
+
+    /*.dataTable>thead>tr>th[class*=sorting_] {*/
+        /*color1: #333;*/
+        /*font-weight: normal;*/
+        /*border-right: 1px solid #ccc;*/
+    /*}*/
+    /*为表格的滚动条增加一个边框*/
+    .dataTables_scroll{border:1px solid #ccc;}
+
+</style>
+</head>
+<body class="no-skin" style="background:white">
+
+<div class="main-container ace-save-state" id="main-container">
+    <div class="main-content-inner">
+        <div class="page-content">
+            <form class="row form-inline" role="form" style="padding: 0px 2px 10px;" id="searchForm">
+                <input type="text" class="input-sm mr10" id="year" name="year" placeholder="选择年" style="width:150px;padding:0 10px;height:32px!important;line-height:32px;position:relative;top:2px;"/>
+                <select class="form-control mr10" id="area" name="areaKey" eltype="chosen" datakey="getAreaSelect" rObj="hospital,dept,physician" style="margin-right:10px;" data-placeholder="区名称:请选择">
+                </select>
+                <select class="form-control" id="hospital" name="hospitalKey" eltype="chosen" datakey="getHospitalSelect" rObj="dept,physician" style="width:150px" data-placeholder="医院名称:请选择">
+                </select>
+                <select class="form-control" id="patient_type" name="patientTypeKey" eltype="chosen" dvalue="OUTPATIENT_URGENT" datakey="getPatientTypeSelect" style="width:150px" data-placeholder="处方类型:请选择">
+                </select>
+                <select class="form-control" id="dept" name="deptKey" eltype="chosen" datakey="getDeptSelect" style="width:150px" data-placeholder="科室:请选择">
+                </select>
+                <!--<select class="form-control" id="physician" name="physicianKey" eltype="chosen" datakey="getDoctorSelect" style="width:150px" data-placeholder="医师姓名:请选择">-->
+                <!--</select>-->
+                <div id="drugClassBtn" eltype="drugcattree" class="mr10">
+                    药品分类选择
+                    <i class="ace-icon fa fa-check-square-o  align-top btn-minier icon-on-right"></i>
+                </div>
+                <input type="text" class="input-sm mr10" placeholder="警戒浮动率" id="rate" name="rate" style="display: none; width:150px;padding:0 10px;height:34px!important;line-height:34px;position:relative;top:2px;"/>
+
+                <input type="button" id="btnSearch" value="查询" data-loading-text="检索中..."/>
+
+                <div class="row form-inline" id="rGroup" eltype="radio" radioName="basicDrugCategory" dataObj="rGrp" title="药品基本分类">
+                </div>
+            </form>
+
+            <div id="linechart" style="margin-bottom1:40px"></div>
+
+            <div>
+                <div class="table-header">
+                    药品异动金额分析
+                </div>
+                <!-- div.table-responsive -->
+                <!-- div.dataTables_borderWrap -->
+                <style>
+                    /*.dataTables_wrapper .row:first-child+.dataTable{border-top:1px solid #ccc;}*/
+                    /**/
+                    /*table.dataTable thead th,table.dataTable{padding:10px; border-collapse: collapse;border:1px solid #ccc;background-color:#f2f2f2;color:#333;font-weight:normal;}*/
+                    /*.dataTable>thead>tr>th[class*=sorting_]{color1:#333;font-weight:normal;border-right:1px solid #ccc; }!* 表格头字体去掉字体加粗 *!*/
+                    /**/
+                </style>
+                <div >
+                    <table id="dynamic-table" class="table compact table-bordered stripe hover" cellspacing="0"  width="100%">
+                        <thead>
+                        <tr>
+                            <th rowspan="2">序号</th>
+                            <th rowspan="2">药品名称</th>
+                            <th rowspan="2">剂型</th>
+                            <th rowspan="2">规格</th>
+                            <th rowspan="2">单价（元）</th>
+                            <th rowspan="2">生产厂家</th>
+                            <th rowspan="2">药物使用总金额</th>
+                            <th rowspan="2">平均浮动率%</th>
+                            <th rowspan="2">区</th>
+                            <th rowspan="2">医院</th>
+                            <th rowspan="2">科室</th>
+                            <th rowspan="2">医师</th>
+                            <th colspan="2">1月</th>
+                            <th colspan="2">2月</th>
+                            <th colspan="2">3月</th>
+                            <th colspan="2">4月</th>
+                            <th colspan="2">5月</th>
+                            <th colspan="2">6月</th>
+                            <th colspan="2">7月</th>
+                            <th colspan="2">8月</th>
+                            <th colspan="2">9月</th>
+                            <th colspan="2">10月</th>
+                            <th colspan="2">11月</th>
+                            <th colspan="2">12月</th>
+                        </tr>
+                        <tr>
+                            <th>金额（元）</th>
+                            <th>浮动率%</th>
+                            <th>金额（元）</th>
+                            <th>浮动率%</th>
+                            <th>金额（元）</th>
+                            <th>浮动率%</th>
+                            <th>金额（元）</th>
+                            <th>浮动率%</th>
+                            <th>金额（元）</th>
+                            <th>浮动率%</th>
+                            <th>金额（元）</th>
+                            <th>浮动率%</th>
+                            <th>金额（元）</th>
+                            <th>浮动率%</th>
+                            <th>金额（元）</th>
+                            <th>浮动率%</th>
+                            <th>金额（元）</th>
+                            <th>浮动率%</th>
+                            <th>金额（元）</th>
+                            <th>浮动率%</th>
+                            <th>金额（元）</th>
+                            <th>浮动率%</th>
+                            <th>金额（元）</th>
+                            <th>浮动率%</th>
+                        </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<!--[if !IE]> -->
+<script src="../../../../plugins/ace/js/jquery-2.1.4.min.js" th:src="@{/plugins/ace/js/jquery-2.1.4.min.js}"></script>
+<!-- <![endif]-->
+
+<!--[if IE]>
+<script src="../../../../plugins/ace/js/jquery-1.11.3.min.js" th:src="@{/plugins/ace/js/jquery-1.11.3.min.js}">></script>
+<![endif]-->
+<script src="../../../../plugins/ace/js/bootstrap.min.js" th:src="@{/plugins/ace/js/bootstrap.min.js}"></script>
+
+<script src="../../../../plugins/ace/js/chosen.jquery.min.js" th:src="@{/plugins/ace/js/chosen.jquery.min.js}"></script>
+
+<script src="../../../../plugins/ace/js/bootstrap-datepicker.min.js" th:src="@{/plugins/ace/js/bootstrap-datepicker.min.js}"></script>
+
+<script src="../../../../plugins/ace/js/jquery.gritter.min.js" th:src="@{/plugins/ace/js/jquery.gritter.min.js}"></script>
+
+<script src="../../../../plugins/ace/js/i18n/grid.locale-cn.js" th:src="@{/plugins/ace/js/i18n/grid.locale-cn.js}"></script>
+<!-- ace scripts -->
+<script src="../../../../plugins/datatable/datatables-1.10.16/js/jquery.dataTables.min.js"  th:src="@{/plugins/datatable/datatables-1.10.16/js/jquery.dataTables.min.js}"></script>
+<!--<script src="../../../../plugins/datatable/datatables-1.10.16/js/dataTables.bootstrap.min.js"  th:src="@{/plugins/datatable/datatables-1.10.16/js/dataTables.bootstrap.min.js}"></script>-->
+<script src="../../../../plugins/datatable/FixedColumns-3.2.4/js/dataTables.fixedColumns.min.js"  th:src="@{/plugins/datatable/FixedColumns-3.2.4/js/dataTables.fixedColumns.min.js}"></script>
+
+<script src="../../../../plugins/ace/js/dataTables.buttons.min.js" th:src="@{/plugins/ace/js/dataTables.buttons.min.js}"></script>
+<script src="../../../../plugins/ace/js/buttons.flash.min.js" th:src="@{/plugins/ace/js/buttons.flash.min.js}"></script>
+<script src="../../../../plugins/ace/js/buttons.html5.min.js" th:src="@{/plugins/ace/js/buttons.html5.min.js}"></script>
+<script src="../../../../plugins/ace/js/buttons.print.min.js" th:src="@{/plugins/ace/js/buttons.print.min.js}"></script>
+<script src="../../../../plugins/ace/js/buttons.colVis.min.js" th:src="@{/plugins/ace/js/buttons.colVis.min.js}"></script>
+<script src="../../../../plugins/ace/js/dataTables.select.min.js" th:src="@{/plugins/ace/js/dataTables.select.min.js}"></script>
+
+<script src="../../../../plugins/ace/js/ace-elements.min.js" th:src="@{/plugins/ace/js/ace-elements.min.js}"></script>
+<script src="../../../../plugins/ace/js/ace.min.js" th:src="@{/plugins/ace/js/ace.min.js}"></script>
+<script src="../../../../plugins/ace/js/jquery.flot.min.js" th:src="@{/plugins/ace/js/jquery.flot.min.js}"></script>
+<script src="../../../../plugins/ace/js/jquery.flot.pie.min.js" th:src="@{/plugins/ace/js/jquery.flot.pie.min.js}"></script>
+<script src="../../../../plugins/ace/js/jquery.flot.resize.min.js" th:src="@{/plugins/ace/js/jquery.flot.resize.min.js}"></script>
+
+<script src="../../../../plugins/zTree_v3-master/js/jquery.ztree.all.min.js" th:src="@{/plugins/zTree_v3-master/js/jquery.ztree.all.min.js}"></script>
+<script src="../../../../plugins/zTree_v3-master/js/jquery.ztree.exhide.min.js" th:src="@{/plugins/zTree_v3-master/js/jquery.ztree.exhide.min.js}"></script>
+
+<script src="../../../../plugins/echarts/echarts.min.js" th:src="@{/plugins/echarts/echarts.min.js}"></script>
+<script src="../../../../plugins/echarts/macarons.js.js" th:src="@{/plugins/echarts/macarons.js}"></script>
+
+<script src="../../../../js/tools.js" th:src="@{/js/tools.js}"></script>
+
+<script>
+
+    $(function() {
+        $.initFormData();
+
+        $( "#year" ).datepicker({autoclose:true,format:'yyyy',minViewMode:2,language:'cn'});
+        $( "#year" ).datepicker( 'setDate' , new Date());
+
+        createTable();
+
+        $("#chartContainer").css("width",($(window).width())+"px").css("overflow","auto");
+
+        $("#btnSearch").click(function(){
+            var mobj = $("#searchForm").serializeObject();
+            var mdata = JSON.stringify(mobj);
+            $.showMessage("debug",mdata);
+            if(mobj.year!="")
+            {
+                mobj.startY = mobj.year;
+            }else{
+                $.showMessage("提示","请先选择年份！");
+                return;
+            }
+
+            if(1==2 && mobj.rate==""){
+                $.showMessage("提示","请设置警戒率！");
+                return;
+            }
+
+            if(mobj["drugClassBtndrugcategoryid"]){
+                mobj.drugCategoyCode=mobj["drugClassBtndrugcategoryid"];
+            }
+
+            if(mobj["drugClassBtndrugcategoryid"]&&mobj.basicDrugCategory){
+                $.showMessage("提示","药品分类与基本分类同时存在，本查询将优先使用基本分类！");
+            }
+
+            if ($("#dynamic-table").hasClass('dataTable')) {
+                var dttable = $("#dynamic-table").dataTable();
+                dttable.fnClearTable(); // 清空一下table
+                dttable.fnDestroy();
+            }
+            createTable();
+//            var tableYD = $('#dynamic-table')
+//                .on( 'init.dt', function () {
+//                    alert("init ok");
+//                } ).DataTable();
+//            tableYD.ajax.reload();
+
+return;
+// 一期不开放图表
+            $.ajax({
+                "url" : $.getWebRoot()+'/bp/particularchange',
+                "type" : 'POST',
+                "dataType" : 'json',
+                "timeout" : 20000,
+                data : mobj,
+                success : function(data) {
+                    if(data.length>0) {
+                        //X轴的标签
+                        var xaxis = ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月'];
+                        //数据对象
+                        var datas = [];
+                        for(var i=0;i<data.length&&i<10;i++){
+                            var ele=data[i];
+                            var row = {};
+                            row.xaxis = ele.drugName;
+                            row.data = [
+                                ele.rate1=='-'?0:ele.rate1,
+                                ele.rate2=='-'?0:ele.rate2,
+                                ele.rate3=='-'?0:ele.rate3,
+                                ele.rate4=='-'?0:ele.rate4,
+                                ele.rate5=='-'?0:ele.rate5,
+                                ele.rate6=='-'?0:ele.rate6,
+                                ele.rate7=='-'?0:ele.rate7,
+                                ele.rate8=='-'?0:ele.rate8,
+                                ele.rate9=='-'?0:ele.rate9,
+                                ele.rate10=='-'?0:ele.rate10,
+                                ele.rate11=='-'?0:ele.rate11,
+                                ele.rate12=='-'?0:ele.rate12
+                            ];
+                            datas[i] = row;
+                        }
+
+                        var rateNum=$("#rate").val();
+                        if(rateNum!=""){
+                            datas[datas.length] = {xaxis: '警戒率', data: [rateNum, rateNum, rateNum, rateNum,rateNum, rateNum, rateNum, rateNum,rateNum, rateNum, rateNum, rateNum]};
+                        }
+                        $.lineChart('linechart').init("药品使用异动分析", "异动分析", datas, xaxis, "300px");
+                    }else{
+                        $.lineChart('linechart').init("药品使用异动分析", "异动分析", null, xaxis, "0px");
+                    }
+                },
+                error:function(a,b,c){
+                    $.showMessage("error","数据加载异常："+b+c+a);
+                }
+            });
+        });
+    });
+
+    function setDivWarpForTd(row,tdIndex){
+        var tdcssStr="overflow: hidden;width:100px;height:20px;text-overflow: ellipsis;white-space: nowrap";
+        for(var j=0;j<tdIndex.length;j++){
+            var coltext=$(row).children('td').eq(tdIndex[j]).text();
+            $(row).children('td').eq(tdIndex[j]).html("<div style='"+tdcssStr+"' title='"+coltext+"'>"+coltext+"</div>")
+        }
+    }
+
+    function createTable(){
+        var offsetheight=88;
+        var calculateHight=($(window).height()-$("#dynamic-table").offset().top-offsetheight);
+
+        var drugParticulChangeStastisc =$('#dynamic-table').dataTable({
+            "bAutoWidth": false,
+            "bServerSide": false,
+            "processing" : true,
+            "searching": true,
+            "sScrollY":(calculateHight<40? 160:calculateHight)+"px",
+            "sScrollX":true,
+            "bScrollCollapse":true,
+            "bSortCellsTop":false,
+            "ordering":true,
+            "bPaginate":false,
+            "bInfo" : true,
+            "ajax": {
+                "url": $.getWebRoot() + '/bp/particularchange',
+                "type": 'POST',
+                "dataType": "json",
+                "data": function (d) {
+                    var mobj = $("#searchForm").serializeObject();
+                    var mdata = JSON.stringify(mobj);
+                    $.showMessage("debug", mdata);
+                    if (mobj.year != "") {
+                        mobj.startY = mobj.year;
+                    }
+                    if (mobj["drugClassBtndrugcategoryid"]) {
+                        mobj.drugCategoyCode = mobj["drugClassBtndrugcategoryid"];
+                    }
+                    if(mobj["basicDrugCategory"]&&mobj["basicDrugCategory"]!=""){
+                        mobj["drugClassBtndrugid"]="";
+                        mobj["drugClassBtndrugcategoryid"]="";
+                        mobj["drugCategoyCode"]="";
+                    }
+
+                    return mobj;
+                },
+                "dataSrc": function (json) {
+                    return json;
+                }
+            },
+            "aoColumns": [
+                {
+                    "sClass": "dt-center",
+                    "bSortable": false,
+                    "data": null,
+                    "targets": 0
+                },
+                {"mData": "drugName", "bSortable": true},
+                {"mData": "dosageForm", "bSortable": true},
+                {"mData": "spec", "bSortable": true},
+                {"mData": "drugPrice", "bSortable": true},
+                {"mData": "manufacture", "bSortable": true},
+
+                {"mData": "totalPrice", "bSortable": true},
+                {"mData": "avgRate", "bSortable": true},
+                {"mData": "areaNum", "bSortable": true},
+                {"mData": "hospitalNum", "bSortable": true},
+                {"mData": "deptNum", "bSortable": true},
+
+                {"mData": "doctorNum", "bSortable": true},
+                {"mData": "month1", "bSortable": true},
+                {"mData": "rate1", "bSortable": true},
+                {"mData": "month2", "bSortable": true},
+                {"mData": "rate2", "bSortable": true},
+
+                {"mData": "month3", "bSortable": true},
+                {"mData": "rate3", "bSortable": true},
+                {"mData": "month4", "bSortable": true},
+                {"mData": "rate4", "bSortable": true},
+                {"mData": "month5", "bSortable": true},
+
+                {"mData": "rate5", "bSortable": true},
+                {"mData": "month6", "bSortable": true},
+                {"mData": "rate6", "bSortable": true},
+                {"mData": "month7", "bSortable": true},
+                {"mData": "rate7", "bSortable": true},
+
+                {"mData": "month8", "bSortable": true},
+                {"mData": "rate8", "bSortable": true},
+                {"mData": "month9", "bSortable": true},
+                {"mData": "rate9", "bSortable": true},
+                {"mData": "month10", "bSortable": true},
+
+                {"mData": "rate10", "bSortable": true},
+                {"mData": "month11", "bSortable": true},
+                {"mData": "rate11", "bSortable": true},
+                {"mData": "month12", "bSortable": true},
+                {"mData": "rate12", "bSortable": true}
+            ],
+            //"columnDefs": [{"targets": 1, "searchable": true, "width": "200px"}],
+            "fnDrawCallback": function () {
+                var noColWidth=$(this.api().column(0).header()).outerWidth();
+                this.api().column(0).nodes().each(function (cell, i) {
+                    cell.innerHTML = i + 1;
+                    cell.width=noColWidth+10+"px";
+                });
+            },
+            "createdRow": function (row, data, dataIndex) {
+                $(row).children('td').eq(1).attr('style', 'white-space: nowrap;text-align: left')
+                setDivWarpForTd(row, [3, 5]);
+
+                $(row).children('td').eq(6).attr('style', 'text-align: right;')
+                $(row).children('td').eq(7).attr('style', 'text-align: right;')
+                for (var j = 12; j <= 35; j++) {
+                    $(row).children('td').eq(j).attr('style', 'text-align: right;')
+                }
+            },
+            fixedColumns: {
+                leftColumns: 2
+            }
+        });
+    }
+
+</script>
+
+</body>
+</html>

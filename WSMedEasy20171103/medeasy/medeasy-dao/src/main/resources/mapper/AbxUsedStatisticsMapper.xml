@@ -1,0 +1,227 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC   
+    "-//mybatis.org//DTD Mapper 3.0//EN"  
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.medimpact.medeasy.dao.bp.abxusedstatistics.AbxUsedStatisticsDao">
+
+	<!-- <cache type="org.mybatis.caches.ehcache.EhcacheCache" /> -->
+	<resultMap id="abxUsedStatisticsDataMap" type="com.medimpact.medeasy.common.bean.bp.AbxUsedStatisticsBi">
+		<id property="id" column="id" />
+		<result property="hospitalCode" column="hospital_code" />
+		<result property="hospitalName" column="hospital_name" />
+		<result property="areaName" column="area_name" />
+		<result property="hospitalCount" column="hospitalCount" />
+		<result property="deptCount" column="deptCount" />
+		<result property="doctorCount" column="doctorCount" />
+		<result property="drugCount" column="drugCount" />
+		<result property="patientCount" column="patientCount" />
+		<result property="drugUsedCount" column="drugUsedCount" />
+		<result property="rxCount" column="rxCount" />
+		<result property="rxPercentage" column="rxPercentage" />
+		<result property="rxAbxAmount" column="rxAbxAmount" />
+		<result property="amount" column="amount" />
+		<result property="amountPercentage" column="amountPercentage" />
+		<result property="totalPercentage" column="totalPercentage" />
+		<result property="averageRxDrug" column="averageRxDrug" />
+		<result property="averageRxAmount" column="averageRxAmount" />
+		<result property="perDrugCount" column="perDrugCount" />
+		<result property="perDrugAmount" column="perDrugAmount" />
+		<result property="AbxDrugUsage" column="AbxDrugUsage" />
+		<result property="IvDrugUsage" column="IvDrugUsage" />
+		<result property="Over2DrugUsage" column="Over2DrugUsage" />
+		<result property="ivDrugRegCount" column="IvDrugUsage" />
+		<result property="Over2DrugRegCount" column="Over2DrugUsage" />
+	</resultMap>
+
+	<select id="getAbxUsedStatistics" parameterType="com.medimpact.medeasy.common.bean.bp.AbxUsedStatisticsBi" resultMap="abxUsedStatisticsDataMap">
+		SELECT
+			dh.hospital_name,dh.area_name,base.* 
+		FROM
+			(
+				SELECT
+					hospital.hospital_code,
+					COUNT(DISTINCT dept.dept_code) deptCount,
+					COUNT(DISTINCT doctor.doctor_code) doctorCount,
+					COUNT(DISTINCT drug.drug_code) drugCount,
+					COUNT(DISTINCT abx.reg_code) drugUsedCount,
+					COUNT(DISTINCT abx.rx_code) rxCount,
+					SUM(abx.amount) rxAbxAmount,
+					COUNT(DISTINCT iv.reg_code) ivDrugRegCount,
+					COUNT(DISTINCT isOver.reg_code) Over2DrugRegCount,
+					b.regAbxVariety regAbxVariety
+				FROM
+					subject_abx_used_analysis_4311 abx
+				JOIN dimension_hospital hospital ON abx.dimension_hospital_key = hospital.dimension_hospital_key
+				JOIN dimension_patient_type patientType ON abx.dimension_patient_type = patientType.dimension_patient_type
+				JOIN dimension_dept dept ON abx.dept_key = dept.dept_key
+				JOIN dimension_doctor doctor ON abx.dimension_doctor_key = doctor.dimension_doctor_key
+				JOIN dimension_drug drug ON abx.dimesion_drug_key = drug.dimesion_drug_key
+				JOIN dimension_calander calander ON abx.dimension_calander_key = calander.dimension_calander_key
+				JOIN 
+				(
+					SELECT 
+						a.hospital_code,SUM(a.regAbxVariety) regAbxVariety 
+					FROM
+						(
+							SELECT
+								hospital.hospital_code,abxUse.reg_code,COUNT(DISTINCT drug.drug_code) regAbxVariety
+							FROM
+								subject_abx_used_analysis_4311 abxUse
+							JOIN dimension_hospital hospital ON abxUse.dimension_hospital_key = hospital.dimension_hospital_key
+							JOIN dimension_drug drug ON abxUse.dimesion_drug_key = drug.dimesion_drug_key
+							JOIN dimension_dept dept ON abxUse.dept_key = dept.dept_key
+							JOIN dimension_patient_type patientType ON abxUse.dimension_patient_type = patientType.dimension_patient_type
+							JOIN dimension_calander calander ON abxUse.dimension_calander_key = calander.dimension_calander_key
+							<include refid="drugCon"></include>
+							WHERE 1 = 1
+							<include refid="operateCon"></include>
+							<include refid="serCondition"></include>
+							<if test="abxLevelKey!=null and abxLevelKey.trim()!=''">
+								AND drug.abx_level = #{abxLevelKey}
+							</if>
+							GROUP BY hospital.hospital_code,abxUse.reg_code
+						)a GROUP BY a.hospital_code
+				)b ON hospital.hospital_code = b.hospital_code
+				<include refid="drugCon"></include>
+				LEFT JOIN (SELECT id,reg_code,is_iv FROM subject_abx_used_analysis_4311 WHERE is_iv = 1)iv ON abx.id = iv.id
+				LEFT JOIN (SELECT id,reg_code,is_over_2 FROM subject_abx_used_analysis_4311 WHERE is_over_2 = 1)isOver ON abx.id = isOver.id
+				WHERE 1 = 1
+				<include refid="operateCon"></include>
+				<include refid="serCondition"></include>
+				<if test="abxLevelKey!=null and abxLevelKey.trim()!=''">
+					AND drug.abx_level = #{abxLevelKey}
+				</if>
+				GROUP BY hospital.hospital_code
+			)base
+		JOIN dimension_hospital dh 
+			ON base.hospital_code = dh.hospital_code AND dh.is_current = 'Y'
+		<if test="sidx != null and sidx != ''">
+			order by ${sidx} ${sord} ,base.hospital_code ${sord}
+		</if>
+		<if test="sidx == null or sidx.trim() == ''">
+			order by base.rxAbxAmount DESC ,base.hospital_code DESC
+		</if>
+		<if test="rowStart!=null and rowSize!=null">
+			limit #{rowStart},#{rowSize}
+		</if>
+	</select>
+	
+	<select id="getAbxUsedCount" parameterType="com.medimpact.medeasy.common.bean.bp.AbxUsedStatisticsBi" resultType="long">
+		SELECT 
+			COUNT(1) 
+		FROM (
+			SELECT 
+				abx.*
+			FROM
+				subject_abx_used_analysis_4311 abx
+			JOIN dimension_hospital hospital ON abx.dimension_hospital_key = hospital.dimension_hospital_key
+			JOIN dimension_patient_type patientType ON abx.dimension_patient_type = patientType.dimension_patient_type
+			JOIN dimension_dept dept ON abx.dept_key = dept.dept_key
+			JOIN dimension_drug drug ON abx.dimesion_drug_key = drug.dimesion_drug_key
+			JOIN dimension_calander calander ON abx.dimension_calander_key = calander.dimension_calander_key
+			<include refid="drugCon"></include>
+			WHERE 1 = 1
+			<include refid="operateCon"></include>
+			<include refid="serCondition"></include>
+			<if test="abxLevelKey!=null and abxLevelKey.trim()!=''">
+				AND drug.abx_level = #{abxLevelKey}
+			</if>
+			GROUP BY hospital.hospital_code
+		)a
+	</select>
+
+	<select id="getCommonStatistics" parameterType="com.medimpact.medeasy.common.bean.bp.AbxUsedStatisticsBi" resultMap="abxUsedStatisticsDataMap">
+		SELECT
+			hospital.hospital_code,
+			SUM(drugAmount.drug_amount) amount,
+			SUM(drugAmount.rx_amount) rxCount,
+			SUM(drugAmount.reg_amount) patientCount
+		FROM
+			subject_drug_amount_perday drugAmount,dimension_hospital hospital,
+			dimension_dept dept,dimension_doctor doctor,
+			dimension_patient_type patientType,dimension_calander calander
+		WHERE drugAmount.dimension_hospital_key = hospital.dimension_hospital_key
+		AND drugAmount.dept_key = dept.dept_key
+		AND drugAmount.dimension_doctor_key = doctor.dimension_doctor_key
+		AND drugAmount.dimension_patient_type = patientType.dimension_patient_type
+		AND drugAmount.dimension_calander_key = calander.dimension_calander_key
+		<include refid="operateCon"></include>
+		<include refid="serCondition"></include>
+		GROUP BY hospital.hospital_code
+	</select>
+	
+	<select id="getTotalStatistics" parameterType="com.medimpact.medeasy.common.bean.bp.AbxUsedStatisticsBi" resultMap="abxUsedStatisticsDataMap">
+		SELECT
+			COUNT(DISTINCT abx.reg_code) patientCount,
+			COUNT(DISTINCT abx.rx_code) rxCount,
+			SUM(abx.amount) amount
+		FROM 
+			subject_abx_used_analysis_4311 abx
+		JOIN dimension_hospital hospital ON abx.dimension_hospital_key = hospital.dimension_hospital_key
+		JOIN dimension_patient_type patientType ON abx.dimension_patient_type = patientType.dimension_patient_type
+		JOIN dimension_dept dept ON abx.dept_key = dept.dept_key
+		JOIN dimension_doctor doctor ON abx.dimension_doctor_key = doctor.dimension_doctor_key
+		JOIN dimension_drug drug ON abx.dimesion_drug_key = drug.dimesion_drug_key
+		JOIN dimension_calander calander ON abx.dimension_calander_key = calander.dimension_calander_key
+		<include refid="drugCon"></include>
+		WHERE 1 = 1
+		<include refid="operateCon"></include>
+		<include refid="serCondition"></include>
+		<if test="abxLevelKey!=null and abxLevelKey.trim()!=''">
+			AND drug.abx_level = #{abxLevelKey}
+		</if>
+	</select>
+	
+	<sql id="serCondition">
+		<if test="startDate!=null and startDate.trim()!=''">
+			<![CDATA[AND date_format(calander.full_day,'%Y-%m') >= #{startDate}]]>
+		</if>
+		<if test="endDate!=null and endDate.trim()!=''">
+			<![CDATA[AND date_format(calander.full_day,'%Y-%m') <= #{endDate}]]>
+		</if>
+		<if test="patientTypeKey != null and patientTypeKey.trim() !='' and patientTypeKey=='OUTPATIENT_URGENT' ">
+			and (patientType.patient_type_code='OUTPATIENT' or patientType.patient_type_code='URGENT_CARE')
+		</if>
+		<if test="patientTypeKey != null and patientTypeKey.trim() !='' and patientTypeKey!='OUTPATIENT_URGENT' ">
+			and patientType.patient_type_code=#{patientTypeKey}
+		</if>
+	</sql>
+	
+	<sql id="operateCon">
+		<if test="operateLevel==2">
+			AND hospital.area_code = #{secUser.areaCode}
+		</if>
+		<if test="operateLevel==3">
+			AND hospital.hospital_code = #{secUser.hospitalCode}
+		</if>
+		<!--if test="operateLevel==4">
+			AND hospital.hospital_code = #{secUser.hospitalCode}
+			AND dept.dept_key = #{secUser.deptId}
+		</if-->
+		<if test="operateLevel==6">
+			AND hospital.area_code = #{secUser.areaCode}
+			AND hospital.hospital_code = #{secUser.hospitalCode}
+			AND doctor.doctor_code = #{secUser.doctorCode}
+		</if>
+	</sql>
+	
+	<sql id="drugCon">
+		<if test="drugClassBtndrugid!=null and drugClassBtndrugid.trim()!=''">
+			JOIN (
+				SELECT drug_code FROM dimension_drug WHERE FIND_IN_SET(drug_code,#{drugClassBtndrugid}) > 0
+			)selDrug ON drug.drug_code = selDrug.drug_code
+		</if>
+		<if test="drugClassBtndrugcategoryid!=null and drugClassBtndrugcategoryid.trim()!=''">
+			JOIN(
+				SELECT
+					DISTINCT dd.LOCAL_DRUG_ID
+				FROM 
+					drug_category dc,drug_category_mapping dm,drug dd
+				WHERE dc.drug_category_id = dm.drug_category_id
+				AND dd.DRUG_ID = dm.DRUG_ID
+				AND FIND_IN_SET(category_code,#{drugClassBtndrugcategoryid}) > 0
+			)selDrug ON drug.drug_code = selDrug.LOCAL_DRUG_ID
+		</if>
+	</sql>
+	
+</mapper>  

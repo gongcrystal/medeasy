@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ehcache xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:noNamespaceSchemaLocation="http://ehcache.org/ehcache.xsd"
+	updateCheck="false">
+
+	<diskStore path="java.io.tmpdir" /> <!-- 缓存存放目录(此目录为放入系统默认缓存目录),也可以是”D:/cache“ java.io.tmpdir -->
+	<defaultCache maxElementsInMemory="10000" eternal="false"
+		timeToIdleSeconds="12000" timeToLiveSeconds="12000" overflowToDisk="true"
+		maxElementsOnDisk="10000000" diskPersistent="false"
+		diskExpiryThreadIntervalSeconds="12000" memoryStoreEvictionPolicy="LRU" />
+	<cache name="messageCache" maxElementsInMemory="10000" eternal="true"
+		timeToIdleSeconds="0" timeToLiveSeconds="0" overflowToDisk="false"
+		memoryStoreEvictionPolicy="LFU" />
+</ehcache>  

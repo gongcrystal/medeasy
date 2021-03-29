@@ -1,0 +1,938 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1"></meta>
+<meta charset="utf-8"></meta>
+<meta name="_csrf" content="${_csrf.token}"></meta>
+<meta name="_csrf_header" content="${_csrf.headerName}"></meta>
+<meta name="description" content="overview &amp; stats"></meta>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"></meta>
+<title>主页</title>
+<link rel="stylesheet" href="../../../plugins/ace/css/bootstrap.min.css" th:href="@{/plugins/ace/css/bootstrap.min.css}"></link>
+<link rel="stylesheet" href="../../../plugins/ace/font-awesome/4.5.0/css/font-awesome.min.css"
+	th:href="@{/plugins/ace/font-awesome/4.5.0/css/font-awesome.min.css}"></link>
+<link rel="stylesheet" href="../../../plugins/ace/css/jquery-ui.min.css" th:href="@{/plugins/ace/css/jquery-ui.min.css}"></link>
+<link rel="stylesheet" href="../../../plugins/ace/css/chosen.min.css" th:href="@{/plugins/ace/css/chosen.min.css}"></link>
+<link rel="stylesheet" href="../../../plugins/ace/css/jquery.gritter.min.css" th:href="@{/plugins/ace/css/jquery.gritter.min.css}"></link>
+<link rel="stylesheet" href="../../../plugins/ace/css/bootstrap-datepicker3.min.css" th:href="@{/plugins/ace/css/bootstrap-datepicker3.min.css}"></link>
+<link rel="stylesheet" href="../../../plugins/ace/css/ui.jqgrid.min.css" th:href="@{/plugins/ace/css/ui.jqgrid.min.css}"></link>
+<link rel="stylesheet" href="../../../plugins/ace/css/fonts.googleapis.com.css" th:href="@{/plugins/ace/css/fonts.googleapis.com.css}"></link>
+<link rel="stylesheet" href="../../../plugins/ace/css/ace.min.css" class="ace-main-stylesheet" id="main-ace-style" th:href="@{/plugins/ace/css/ace.min.css}"></link>
+<link rel="stylesheet" href="../../../css/rdu_reset.css" class="" id="" th:href="@{/css/rdu_reset.css}"></link>
+<!--[if lte IE 9]>
+	<link rel="stylesheet" href="../../../plugins/ace/css/ace-part2.css"  class="ace-main-stylesheet" th:href="@{/plugins/ace/css/ace-part2.css}"></link>
+<![endif]-->
+
+<!--[if lte IE 9]>
+	<link rel="stylesheet" href="../../../plugins/ace/css/ace-ie.min.css"  class="ace-main-stylesheet" th:href="@{/plugins/ace/css/ace-ie.min.css}"></link>
+<![endif]-->
+
+<!-- ace settings handler -->
+
+<script src="../../../plugins/ace/js/ace-extra.min.js" th:src="@{/plugins/ace/js/ace-extra.min.js}"></script>
+
+<!--[if lte IE 8]>
+	<script src="../../../plugins/ace/js/html5shiv.min.js"  th:src="@{/plugins/ace/js/html5shiv.min.js}"></script>
+	<script src="../../../plugins/ace/js/respond.min.js"  th:src="@{/plugins/ace/js/respond.min.js}"></script>
+<![endif]-->
+<style type="text/css">
+	.dataTable th, td{
+		white-space: nowrap !important;
+	}
+	#dynamic-table_YD{
+		width: 100% !important;
+	}
+	.table > tbody > tr > td, .table > tbody > tr > th, .table > tfoot > tr > td, .table > tfoot > tr > th, .table > thead > tr > td, .table > thead > tr > th{width:44px;}/*表格序号宽度*/
+</style>
+
+</head>
+<body class="no-skin" style="background: white">
+<div class="main-content" id="main-container">
+		<div class="main-content-inner">
+			<div class="page-content">
+				<form class="row form-inline" role="form" style="padding: 0px 2px 10px" id="searchForm">
+					<div id="daterangeYM" class="input-daterange input-group" eltype="dateRangeYM" rangeStartName="start" rangeEndName="end" style="width: 300px">
+					</div>
+					<select class="form-control" id="area" name="areaKey" eltype="chosen" datakey="getAreaSelect" rObj="hospital" style="width: 150px"
+						data-placeholder="区名称:请选择">
+					</select> <select class="form-control" id="hospital" name="hospitalKey" eltype="chosen" datakey="getHospitalSelect" rObj="" style="width: 150px"
+						data-placeholder="医院名称:请选择">
+					</select>
+					<input type="button" id="btnSearch" value="查询" data-loading-text="检索中..." />
+					<input type="reset" id="reset-widgets"></input>
+					</form>	
+				<!-- for 检索条件的兼容 crystal -->				
+				<form class="row form-inline" role="form" style="display:none" id="searchForm1">
+					<!-- for being compile with  search condition  crystal -->
+					<input type="text" class="input-sm form-control" name="startDate" style="display:none"/>
+					<input type="text" class="input-sm form-control" name="endDate" style="display:none"/>
+					<input type="text" class="input-sm form-control" name="areaCode" style="display:none"/>
+					<input type="text" class="input-sm form-control" name="hospitalCode" style="display:none"/>
+					<!-- end -->	
+								
+				</form>
+			</div>
+			<div class="row">
+				<div class="col-xs-12">
+					<!-- PAGE CONTENT BEGINS -->
+					<div class="invisible" id="main-widget-container">
+						<div class="row">
+							<div class="col-xs-12 col-sm-12 widget-container-col" id="widget-container-col-1">
+								<div class="widget-box" id="widget-box-1">
+									<div class="widget-header">
+										<h5 class="widget-title">药品使用基础信息</h5>
+
+										<div class="widget-toolbar">
+											<!--div class="widget-menu">
+												<a href="#" data-action="settings" data-toggle="dropdown">
+													<i class="ace-icon fa fa-bars"></i>
+												</a>
+
+												<ul class="dropdown-menu dropdown-menu-right dropdown-light-blue dropdown-caret dropdown-closer">
+													<li>
+														<a data-toggle="tab" href="#dropdown1">Option#1</a>
+													</li>
+
+													<li>
+														<a data-toggle="tab" href="#dropdown2">Option#2</a>
+													</li>
+												</ul>
+											</div-->
+
+											<a href="#" data-action="fullscreen" class="orange2"> <i class="ace-icon fa fa-expand"></i>
+											</a>
+											<!--a href="#" data-action="reload">
+												<i class="ace-icon fa fa-refresh"></i>
+											</a-->
+											<a href="#" data-action="collapse"> <i class="ace-icon fa fa-chevron-up"></i>
+											</a> <a href="#" data-action="close"> <i class="ace-icon fa fa-times"></i>
+											</a>
+										</div>
+									</div>
+
+									<div class="widget-body">
+										<div class="widget-main">
+											<div class="profile-user-info profile-user-info-striped" id="t1">
+												<div class="profile-info-row">
+													<div class="profile-info-name">处方数</div>
+
+													<div class="profile-info-value">
+														<span class="editable" id="rxAmount" name="rxAmount">--</span>
+													</div>
+													<div class="profile-info-name">就诊人次</div>
+
+													<div class="profile-info-value">
+														<span class="editable" id="regAmount" name="regAmount">--</span>
+													</div>
+													<div class="profile-info-name">人均药品品种数</div>
+
+													<div class="profile-info-value">
+														<span class="editable" id="drugSpecAvgPt" name="drugSpecAvgPt">--</span>
+													</div>
+													<div class="profile-info-name">平均处方金额</div>
+
+													<div class="profile-info-value">
+														<i class="fa fa-jpy light-orange bigger-110"></i> <span class="editable" id="amountAvgRx" name="amountAvgRx">--</span>
+													</div>
+													<div class="profile-info-name">药品使用金额</div>
+
+													<div class="profile-info-value">
+														<i class="fa fa-jpy light-orange bigger-110"></i> <span class="editable" id="mamount" name="mamount">--</span>
+													</div>
+													<div class="profile-info-name" style="width: 120px">人均药品使用金额</div>
+
+													<div class="profile-info-value">
+														<i class="fa fa-jpy light-orange bigger-110"></i> <span class="editable" id="amountAvgPt" name="amountAvgPt">--</span>
+													</div>
+												</div>
+											</div>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+						<!-- <h4 class="header smaller lighter green">点评结果汇总</h4>
+
+						<div th:replace="components::rxEvaPB"></div> -->
+
+						<div class="row">
+
+							<!-- 	<div class="col-xs-12 col-sm-6">
+								<table id="gridtb_drugincome"></table>
+								<div id="gridpg_drugincome"></div>
+							</div> -->
+
+							<div class="col-xs-12 col-sm-6 widget-container-col h500" id="widget-container-col-2">
+								<div class="widget-box" id="widget-box-2">
+									<div class="widget-header">
+										<h5 class="widget-title">处方点评结果汇总图</h5>
+										<div class="widget-toolbar">
+											<a href="#" data-action="fullscreen" class="orange2"> <i class="ace-icon fa fa-expand"></i>
+											</a> <a href="#" data-action="collapse"> <i class="ace-icon fa fa-chevron-up"></i>
+										</a> <a href="#" data-action="close"> <i class="ace-icon fa fa-times"></i>
+										</a>
+										</div>
+									</div>
+
+									<div class="widget-body">
+										<div class="widget-main"  style="height:100%">
+											<div th:replace="components::rxEvaPB"></div>
+											<!-- <p class="alert alert-info">Nunc aliquam enim ut arcu aliquet adipiscing. Fusce dignissim volutpat justo non consectetur. Nulla
+												fringilla eleifend consectetur.</p>
+											<p class="alert alert-success">Raw denim you probably haven't heard of them jean shorts Austin.</p> -->
+										</div>
+									</div>
+								</div>
+							</div>
+							<div class="col-xs-12 col-sm-6 widget-container-col" id="widget-container-col-22">
+								<div class="widget-box" id="widget-box-22">
+									<div class="widget-header">
+										<h5 class="widget-title">药品金额异动统计</h5>
+
+										<div class="widget-toolbar">
+											<!--a href="#" data-action="fullscreen" class="orange2"> <i class="ace-icon fa fa-expand"></i>
+											</a--> <a href="#" data-action="collapse"> <i class="ace-icon fa fa-chevron-up"></i>
+											</a> <a href="#" data-action="close"> <i class="ace-icon fa fa-times"></i>
+											</a>
+										</div>
+									</div>
+
+									<div class="widget-body">
+										<div class="widget-main">
+											<div>
+												<table id="dynamic-table_YD" class="table compact table-striped table-bordered table-hover">
+													<thead>
+														<tr>
+															<th class="center">排名</th>
+															<th>药品名称</th>
+															<th>剂型</th>
+															<th class="hidden-480">规格</th>
+															<th>单价（元）</th>
+															<th>生产厂家</th>
+															<th>药品使用金额（元）</th>
+															<th>平均浮动率%</th>
+														</tr>
+													</thead>
+
+													<tbody>
+
+													</tbody>
+												</table>
+											</div>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+
+						<div class="row">
+							<div class="col-xs-12 col-sm-6 widget-container-col" id="widget-container-col-21">
+								<div class="widget-box" id="widget-box-21">
+									<div class="widget-header">
+										<h5 class="widget-title">按药品类型收入金额统计</h5>
+
+										<div class="widget-toolbar">
+											<a href="#" data-action="fullscreen" class="orange2"> <i class="ace-icon fa fa-expand"></i>
+											</a> <a href="#" data-action="collapse"> <i class="ace-icon fa fa-chevron-up"></i>
+										</a> <a href="#" data-action="close"> <i class="ace-icon fa fa-times"></i>
+										</a>
+										</div>
+									</div>
+
+									<div class="widget-body">
+										<div class="widget-main">
+											<div>
+												<table id="dynamic-table-drug-income" class="table table-striped table-bordered table-hover">
+													<thead>
+													<tr>
+														<th class="center">项目名称</th>
+														<th>总费用(元）</th>
+														<!-- <th>金额总占比%</th> -->
+														<th class="hidden-480">人均药品使用金额（元）</th>
+														<th>平均处方金额（元）</th>
+														<th>药品周转率%</th>
+													</tr>
+													</thead>
+
+													<tbody>
+
+													</tbody>
+												</table>
+											</div>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+
+						<div class="row">
+							<div class="col-xs-12 col-sm-12 widget-container-col" id="widget-container-col-31">
+								<div class="widget-box" id="widget-box-31">
+									<div class="widget-header">
+										<h5 class="widget-title">按医院药品使用金额排名统计</h5>
+
+										<div class="widget-toolbar">
+											<a href="#" data-action="fullscreen" class="orange2"> <i class="ace-icon fa fa-expand"></i>
+											</a> <a href="#" data-action="collapse"> <i class="ace-icon fa fa-chevron-up"></i>
+											</a> <a href="#" data-action="close"> <i class="ace-icon fa fa-times"></i>
+											</a>
+										</div>
+									</div>
+
+									<div class="widget-body">
+										<div class="widget-main">
+											<div>
+												<table id="dynamic-table" class="table table-striped table-bordered table-hover">
+													<thead>
+														<tr>
+															<th class="center">排名</th>
+															<th>医院名称</th>
+															<th>区名称</th>
+															<th class="hidden-480">就诊人次</th>
+															<th>处方数</th>
+															<th>药品品种数</th>
+															<th>药品使用金额（元）</th>
+															<!-- 	<th>金额总占比%</th> -->
+															<th>药占比%</th>
+															<th>人均药品使用金额（元）</th>
+															<th>人均药品品种数</th>
+															<th>大处方百分率%</th>
+															<th>平均处方金额（元）</th>
+															<th>人均用药天数（天）</th>
+															<th>用药天数（天）</th>
+															<th>药品周转率%</th>
+															<th>科室</th>
+															<th>医师</th>
+														</tr>
+													</thead>
+
+													<tbody>
+
+													</tbody>
+												</table>
+											</div>
+										</div>
+									</div>
+								</div>
+							</div>
+
+						</div>
+
+						<!-- <div class="space"></div>
+						<div class="space"></div>
+						
+						<div class="row">
+							<div class="col-sm-12">
+								<table id="grid-table"></table>
+								<div id="grid-pager"></div>
+							</div>
+						</div> -->
+
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<!--[if !IE]> -->
+	<script src="../../../plugins/ace/js/jquery-2.1.4.min.js" th:src="@{/plugins/ace/js/jquery-2.1.4.min.js}"></script>
+	<!-- <![endif]-->
+
+	<!--[if IE]>
+	<script src="../../../plugins/ace/js/jquery-1.11.3.min.js" th:src="@{/plugins/ace/js/jquery-1.11.3.min.js}">></script>
+	<![endif]-->
+	<script src="../../../plugins/ace/js/bootstrap.min.js" th:src="@{/plugins/ace/js/bootstrap.min.js}"></script>
+
+	<script src="../../../plugins/ace/js/chosen.jquery.min.js" th:src="@{/plugins/ace/js/chosen.jquery.min.js}"></script>
+	<script src="../../../plugins/ace/js/jquery.gritter.min.js" th:src="@{/plugins/ace/js/jquery.gritter.min.js}"></script>
+	<script src="../../../plugins/ace/js/bootstrap-datepicker.min.js" th:src="@{/plugins/ace/js/bootstrap-datepicker.min.js}"></script>
+	<script src="../../../plugins/ace/js/grid.locale-en.js" th:src="@{/plugins/ace/js/grid.locale-en.js}"></script>
+	<script src="../../../plugins/ace/js/jquery-ui.custom.min.js" th:src="@{/plugins/ace/js/jquery-ui.custom.min.js}"></script>
+
+	<!-- page specific plugin scripts -->
+	<script src="../../../plugins/ace/js/jquery.dataTables.min.js" th:src="@{/plugins/ace/js/jquery.dataTables.min.js}"></script>
+	<script src="../../../plugins/ace/js/jquery.dataTables.bootstrap.min.js" th:src="@{/plugins/ace/js/jquery.dataTables.bootstrap.min.js}"></script>
+	<script src="../../../plugins/ace/js/dataTables.buttons.min.js" th:src="@{/plugins/ace/js/dataTables.buttons.min.js}"></script>
+	<script src="../../../plugins/ace/js/buttons.flash.min.js" th:src="@{/plugins/ace/js/buttons.flash.min.js}"></script>
+	<script src="../../../plugins/ace/js/buttons.html5.min.js" th:src="@{/plugins/ace/js/buttons.html5.min.js}"></script>
+	<script src="../../../plugins/ace/js/buttons.print.min.js" th:src="@{/plugins/ace/js/buttons.print.min.js}"></script>
+	<script src="../../../plugins/ace/js/buttons.colVis.min.js" th:src="@{/plugins/ace/js/buttons.colVis.min.js}"></script>
+	<script src="../../../plugins/ace/js/dataTables.select.min.js" th:src="@{/plugins/ace/js/dataTables.select.min.js}"></script>
+	<script src="../../../plugins/ace/js/dataTables.fixedColumns.js" th:src="@{/plugins/ace/js/dataTables.fixedColumns.js}"></script>
+	<script src="../../../plugins/ace/js/jquery.jqGrid.min.js" th:src="@{/plugins/ace/js/jquery.jqGrid.min.js}"></script>
+	<!-- ace scripts -->
+	<script src="../../../plugins/ace/js/ace-elements.min.js" th:src="@{/plugins/ace/js/ace-elements.min.js}"></script>
+	<script src="../../../plugins/ace/js/ace.min.js" th:src="@{/plugins/ace/js/ace.min.js}"></script>
+	<script src="../../../plugins/ace/js/jquery.flot.min.js" th:src="@{/plugins/ace/js/jquery.flot.min.js}"></script>
+	<script src="../../../plugins/ace/js/jquery.flot.pie.min.js" th:src="@{/plugins/ace/js/jquery.flot.pie.min.js}"></script>
+	<script src="../../../plugins/ace/js/jquery.flot.resize.min.js" th:src="@{/plugins/ace/js/jquery.flot.resize.min.js}"></script>
+	<script src="../../../js/tools.js" th:src="@{/js/tools.js}"></script>
+	<script src="../../../js/homepage.js" th:src="@{/js/homepage.js}"></script>
+
+
+	<script>
+		jQuery(function($) {
+
+			$.initFormData();
+
+			$('.widget-container-col').sortable({
+				connectWith : '.widget-container-col',
+				items : '> .widget-box',
+				handle : ace.vars['touch'] ? '.widget-title' : false,
+				cancel : '.fullscreen',
+				opacity : 0.8,
+				revert : true,
+				forceHelperSize : true,
+				placeholder : 'widget-placeholder',
+				forcePlaceholderSize : true,
+				tolerance : 'pointer',
+				start : function(event, ui) {
+					//when an element is moved, it's parent becomes empty with almost zero height.
+					//we set a min-height for it to be large enough so that later we can easily drop elements back onto it
+					ui.item.parent().css({
+						'min-height' : ui.item.height()
+					})
+					//ui.sender.css({'min-height':ui.item.height() , 'background-color' : '#F5F5F5'})
+				},
+				update : function(event, ui) {
+					ui.item.parent({
+						'min-height' : ''
+					})
+					//p.style.removeProperty('background-color');
+
+					//save widget positions
+					var widget_order = {}
+					$('.widget-container-col').each(function() {
+						var container_id = $(this).attr('id');
+						widget_order[container_id] = []
+
+						$(this).find('> .widget-box').each(function() {
+							var widget_id = $(this).attr('id');
+							widget_order[container_id].push(widget_id);
+							//now we know each container contains which widgets
+						});
+					});
+
+					ace.data.set('demo', 'widget-order', widget_order, null, true);
+				}
+			});
+
+			//when a widget is shown/hidden/closed, we save its state for later retrieval
+			$(document).on('shown.ace.widget hidden.ace.widget closed.ace.widget', '.widget-box', function(event) {
+				var widgets = ace.data.get('demo', 'widget-state', true);
+				if (widgets == null)
+					widgets = {}
+
+				var id = $(this).attr('id');
+				widgets[id] = event.type;
+				ace.data.set('demo', 'widget-state', widgets, null, true);
+			});
+
+			(function() {
+				//restore widget order
+				var container_list = ace.data.get('demo', 'widget-order', true);
+				if (container_list) {
+					for ( var container_id in container_list)
+						if (container_list.hasOwnProperty(container_id)) {
+
+							var widgets_inside_container = container_list[container_id];
+							if (widgets_inside_container.length == 0)
+								continue;
+
+							for (var i = 0; i < widgets_inside_container.length; i++) {
+								var widget = widgets_inside_container[i];
+								$('#' + widget).appendTo('#' + container_id);
+							}
+
+						}
+				}
+
+				//restore widget state
+				var widgets = ace.data.get('demo', 'widget-state', true);
+				if (widgets != null) {
+					for ( var id in widgets)
+						if (widgets.hasOwnProperty(id)) {
+							var state = widgets[id];
+							var widget = $('#' + id);
+							if ((state == 'shown' && widget.hasClass('collapsed')) || (state == 'hidden' && !widget.hasClass('collapsed'))) {
+								widget.widget_box('toggleFast');
+							} else if (state == 'closed') {
+								widget.widget_box('closeFast');
+							}
+						}
+				}
+
+				$('#main-widget-container').removeClass('invisible');
+
+				//reset saved positions and states
+				$('#reset-widgets').on('click', function() {
+					ace.data.remove('demo', 'widget-state');
+					ace.data.remove('demo', 'widget-order');
+					document.location.reload();
+				});
+
+			})();
+
+			var start = null, end = null, hospitalKey = null;
+			var areaKey = null;
+		
+			
+			//  按医院药品使用金额排名统计
+			$('#dynamic-table').dataTable({
+                "ordering":false,
+                "sScrollX":true,
+				"processing" : true,
+				"serverSide" : true,
+				"searching" : false,
+				"bFilter" : false,
+				"bInfo" : false,
+				"bPaginate" : false,
+				"emptyTable": "",
+
+				"ajax" : {
+					"url" : "/medeasy-web/druguse/drugUseStHospital4Dt",
+					"type" : 'POST',
+					"dataType" : "json",
+					"data" : function(d) {
+						if (start)
+							d.start = start;
+						if (end)
+							d.end = end;
+						if (areaKey)
+							d.areaKey = areaKey;
+						if (hospitalKey)
+							d.hospitalKey = hospitalKey;
+						return d;
+					}
+                },
+				"columns" : [ {
+					"data" : "rankId"
+				}, {
+					"data" : "hospitalName"
+				}, {
+					"data" : "areaName"
+				}, {
+					"data" : "regAmount"
+				}, {
+					"data" : "rxAmount"
+				}, {
+					"data" : "drugSpecAmount1"
+				},
+
+				{
+					"data" : "mamount"
+				}, /*{
+					"data" : "amountPerAreaTotal"
+				},*/ {
+					"data" : "amountPerTotal"
+				}, {
+					"data" : "amountAvgPt"
+				}, {
+					"data" : "drugSpecAvgPt"
+				}, {
+					"data" : "perbigRx"
+				},
+
+				{
+					"data" : "amountAvgRx"
+				}, {
+					"data" : "drugDayAvgPt"
+				}, {
+					"data" : "drugDayPerHp"
+				}, {
+					"data" : "turnoverRate"
+				}, {
+					"data" : "depts"
+				}, {
+					"data" : "drs"
+				} ],
+
+			});
+
+			$('#dynamic-table-drug-income').dataTable({
+				"processing" : true,
+				"serverSide" : true,
+				"searching" : false,
+				"bFilter" : false,
+				"bInfo" : false,
+				"bPaginate" : false,
+                "ordering":false,
+                "sScrollX":true,
+				"ajax" : {
+					"url" : "/medeasy-web/druguse/drugIncome",
+					"type" : 'POST',
+					"dataType" : "json",
+					"data" : function(d) {
+						if (start)
+							d.start = start;
+						if (end)
+							d.end = end;
+						if (areaKey)
+							d.areaKey = areaKey;
+						if (hospitalKey)
+							d.hospitalKey = hospitalKey;
+						return d;
+					}
+
+				},
+				"columns" : [ {
+					"data" : "drugItemName"
+				}, {
+					"data" : "mamount"
+				},/* {
+																	"data" : "amountPerAreaTotal"
+																},*/{
+					"data" : "amountAvgPt"
+				}, {
+					"data" : "amountAvgRx"
+				}, {
+					"data" : "turnoverRate"
+				} ],
+
+			});
+
+             var drugParticulChangeStastisc =$('#dynamic-table_YD').dataTable({
+                 "processing" : true,
+				"sScrollY":"px",
+				"sScrollX":true,
+				"bScrollCollapse":true,
+				"bSortCellsTop":false,
+				"ordering":false,
+				"bPaginate":false,
+				"searching":false,
+				"bInfo" : false,
+				"ajax":{
+				    url:$.getWebRoot() +"/bp/particularchange",
+                    "type" : 'POST',
+                    "dataType" : "json",
+					 data:function(aoData){
+                         var params=$("#searchForm").serializeObject();
+
+                         params.start = params.start.replace('-', '');
+                         params.end = params.end.replace('-', '');
+                         if (params.start != "") {
+                             params.startY = params.start.substring(0, 4);
+                         }
+                         return params;
+					 },
+                     "dataSrc": function (jsonData) {
+					     var retData=[];
+                         for(var i=0;jsonData&&i<jsonData.length&&i<10;i++){
+                             jsonData[i].sno=i+1;
+                             retData[i] =jsonData[i];
+                         }
+                         return retData;
+                     }
+				 },
+				 "columns": [
+							 {
+								 "sClass": "dt-center",
+								 "bSortable": false,
+								 "data": "sno",
+								 "targets": 0
+							 },
+                            {"data": 'drugName'},
+                            {"data": 'dosageForm',"width":"20px"},
+                            {"data": 'spec',"width":"20px"},
+                            {"data": 'drugPrice',"width":"100px"},
+                            {"data": 'manufacture',"width":"120px"},
+                            {"data": 'totalPrice',"width":"120px"},
+                            {"data": 'avgRate',"width":"120px"}
+                            ],
+                 "fnRowCallback" : function(nRow, aData, iDisplayIndex) {//相当于对字段格式化
+                      $('td:eq(4)', nRow).html(toC(aData.amount));
+                 },
+                 "createdRow": function (row, data, dataIndex) {
+                     $(row).children('td').eq(4).attr('style', 'text-align: right;');
+                     $(row).children('td').eq(6).attr('style', 'text-align: right;');
+                     setDivWarpForTd(row, [2,3,4,5]);
+				 },
+                 "footerCallback": function ( row, data, start, end, display ) {
+                     var api = this.api();
+                     // Update footer
+                     $( api.column( 3 ).footer() ).html(
+                         '$123123' +' ( $123123123' +' total)'
+                     );
+                 },
+				"fnInitComplete": function() {
+                      this.fnAdjustColumnSizing(true);
+                  },
+                 fixedColumns: {
+                     leftColumns: 2
+                 }
+             });
+
+			$("#btnSearch").on(
+					'click',
+					function() {
+						var sobj = $("#searchForm").serializeObject();
+
+						if (sobj.start == "" || sobj.end == "") {
+							$.showMessage("提示", "请先选择时间范围！");
+							return;
+						}
+						console.log("sobj:" + JSON.stringify(sobj));
+
+						drugUseStSearch(sobj); //1.药品使用基础信息 crystal
+
+						//2.按药品类型收入金额统计 查询  crystal
+						var table = $('#dynamic-table-drug-income').DataTable();
+
+						start = sobj.start;
+						end = sobj.end;
+						areaKey = sobj.areaKey;
+						hospitalKey = sobj.hospitalKey
+						table.ajax.reload(null, true);
+						//end
+						
+						//3.按医院药品使用金额排名统计
+						var table1 = $('#dynamic-table').DataTable();
+						table1.ajax.reload(null, true);
+						//end							
+						
+						//4.处方点评结果汇总图
+						var dataH = $("#searchForm1").serializeObject();
+						dataH.startDate=start;
+						dataH.endDate=end;
+						dataH.areaCode=areaKey;
+						dataH.hospitalKey=hospitalKey;
+						console.log("coco: "+JSON.stringify(dataH));					
+						
+						$.evaChart("/medeasy-web/bp/rxevast4hpSearchNew",dataH);  
+						//end
+
+						sobj.start = sobj.start.replace('-', '');
+						sobj.end = sobj.end.replace('-', '');
+
+						var jdata = JSON.stringify(sobj);
+
+						/* $.showMessage("debug", jdata); */
+
+						//药品使用基础信息表
+						/*
+						$.ajax({
+							"url" : $.getWebRoot() + '/bp/getDrugUsedBasicInfo',
+							"type" : 'POST',
+							"dataType" : 'json',
+							"timeout" : 20000,
+							data : sobj,
+							success : function(data) {
+								if (data.length == 1) {
+									if (data[0]) {
+										$("#rx_count").html(data[0].rxNum);
+										$("#reg_count").html(data[0].regNum);
+										$("#avg_drug_veriety").html(data[0].avgDrugVariety);
+										$("#avg_rx_price_amount").html(data[0].avgRxPriceAmount);
+										$("#drug_price_amount").html(data[0].drugPriceAmount);
+										$("#avg_drug_price_amount").html(data[0].avgDrugPriceAmount);
+									} else {
+										$("#rx_count").html("-");
+										$("#reg_count").html("-");
+										$("#avg_drug_veriety").html("-");
+										$("#avg_rx_price_amount").html("-");
+										$("#drug_price_amount").html("-");
+										$("#avg_drug_price_amount").html("-");
+									}
+								}
+							},
+							error : function(a, b, c) {
+								$.showMessage("error", "数据加载异常：" + b + c + a);
+							}
+						});
+						*/
+						//药品金额异动统计
+                        var tableYD = $('#dynamic-table_YD').DataTable();
+                        tableYD.ajax.reload(null, true);
+					})
+
+		});
+
+		//药品使用基础信息查询
+		function drugUseStSearch(pdata) {
+			$.ajax({
+				"url" : "/medeasy-web/druguse/drugUseStHomePageSearch",
+				"dataType" : "json",
+				type : "POST",
+				data : pdata,
+				success : function(data) {
+					$("#t1 span").each(function() {
+						/* console.log(" " + $(this).attr("name")); */
+						$(this).text(data.rows[$(this).attr("name")] ? data.rows[$(this).attr("name")] : "");
+					});
+
+				}
+			});
+		}
+
+		//按药品类型收入金额统计 查询
+		/*  function drugIncomeSearchDatatable(table,pdata){
+			var start = pdata.start; 
+			var end = pdata.end;
+			var areaKey = pdata.areaKey;
+			var hospitalKey = pdata.hospitalKey;
+			console.log("coco: "+pdata.start+" "+pdata.end+" "+areaKey);
+			table.ajax.reload(null, true);	
+		} */
+
+		jQuery(function($) {
+			/* $.createJQDataTable("#dynamic-table", null, 18, 20, true); */
+			/* $.createJQDataTable("#dynamic-table-drug-income", null, 6, 8, true); */
+
+			/**
+			 //add horizontal scrollbars to a simple table
+			 $('#simple-table').css({'width':'2000px', 'max-width': 'none'}).wrap('<div style="width: 1000px;" />').parent().ace_scroll(
+			 {
+			   horizontal: true,
+			   styleClass: 'scroll-top scroll-dark scroll-visible',//show the scrollbars on top(default is bottom)
+			   size: 2000,
+			   mouseWheelLock: true
+			 }
+			 ).css('padding-top', '12px');
+			 */
+
+		})
+
+		$.createJQDataTable = function(id, reqpath, cols, mockDataRows, usemock) {
+			if (usemock) {
+				for (var j = 0; j < mockDataRows; j++) {
+					var tempRowStr = "";
+					for (var i = 0; i < cols; i++) {
+						tempRowStr += "<td>" + j + ":" + i + "</td>";
+					}
+					$(id).append("<tr>" + tempRowStr + "</tr>");
+				}
+			}
+			var oLanguage = {
+				"oAria" : {
+					"sSortAscending" : ": 升序排列",
+					"sSortDescending" : ": 降序排列"
+				},
+				"oPaginate" : {
+					"sFirst" : "首页",
+					"sLast" : "末页",
+					"sNext" : "下页",
+					"sPrevious" : "上页"
+				},
+				"sEmptyTable" : "没有相关记录",
+				"sInfo" : "第 _START_ 到 _END_ 条记录，共 _TOTAL_ 条",
+				"sInfoEmpty" : "第 0 到 0 条记录，共 0 条",
+				"sInfoFiltered" : "(从 _MAX_ 条记录中检索)",
+				"sInfoPostFix" : "",
+				"sDecimal" : "",
+				"sThousands" : ",",
+				"sLengthMenu" : "每页显示条数: _MENU_",
+				"sLoadingRecords" : "正在载入...",
+				"sProcessing" : "正在载入...",
+				"sSearch" : "搜索:",
+				"sSearchPlaceholder" : "",
+				"sUrl" : "",
+				"sZeroRecords" : "没有相关记录"
+			}
+			$.fn.dataTable.defaults.oLanguage = oLanguage;
+
+			var aocols = [];
+			for (var k = 0; k < cols; k++) {
+				aocols[k] = {
+					"bSortable" : false
+				};
+			}
+			var myTable = $(id).wrap("<div class='dataTables_borderWrap' />").DataTable({
+				bAutoWidth : false,
+				"aoColumns" : aocols,
+				"aaSorting" : [],
+			/*
+			 //"bProcessing": true,
+			 //"bServerSide": true,
+			 //"sAjaxSource": "http://127.0.0.1/table.php"	,
+
+			 //,
+			 //"sScrollY": "200px",
+			 //"bPaginate": false,
+
+			 //"sScrollX": "100%",
+			 //"sScrollXInner": "120%",
+			 //"bScrollCollapse": true,
+			 //Note: if you are applying horizontal scrolling (sScrollX) on a ".table-bordered"
+			 //you may want to wrap the table inside a "div.dataTables_borderWrap" element
+
+			 //"iDisplayLength": 50
+			 */
+			});
+		}
+
+		$.createJQDataTableWithData = function(id, reqpath, params, columns) {
+			$.ajax({
+				"url" : $.getWebRoot() + reqpath,
+				"type" : 'POST',
+				"dataType" : 'json',
+				"timeout" : 20000,
+				data : params,
+				success : function(data) {
+					if ($(id).hasClass('dataTable')) {
+						dttable = $(id).dataTable();
+						dttable.fnClearTable(); //清空一下table
+						dttable.fnDestroy(); //还原初始化了的datatable
+					}
+					var trs = "";
+					if (data.length > 0) {
+
+						for (var j = 0; j < data.length; j++) {
+							if (j > 9) {
+								break;
+							}
+							var tempRowStr = "";
+							for (var k = 0; k < columns.length; k++) {
+								var tmpval = "";
+								if (k == 0) {
+									tmpval = j + 1;
+								} else {
+									tmpval = data[j][columns[k]];
+								}
+								if (tmpval == null || tmpval == "null" || tmpval == "") {
+									tmpval = "-";
+								}
+								tempRowStr += "<td>" + tmpval + "</td>";
+							}
+							trs += "<tr>" + tempRowStr + "</tr>";
+						}
+
+						var aocols = [];
+						for (var k = 0; k < columns.length; k++) {
+							aocols[k] = {
+								"bSortable" : false
+							};
+						}
+
+						$(id).find("tbody").html(trs);
+						$(id).dataTable({
+							"bAutoWidth" : false,
+							"searching" : false,
+                            "serverSide" : false,
+							"scrollY" : "auto",
+                            "scrollX" : "auto",
+							"order":false,
+							"scrollCollapse" : true,
+							"paging" : false,
+							"bInfo":false,
+							"aoColumns" : aocols,
+							"aaSorting" : []
+						});
+					}
+				},
+				error : function(a, b, c) {
+					$.showMessage("error", "数据加载异常：" + b + c + a);
+				}
+			});
+		}
+
+        function setDivWarpForTd(row,tdIndex){
+            var tdcssStr="overflow: hidden;width:50px;height:20px;text-overflow: ellipsis;white-space: nowrap";
+            for(var j=0;j<tdIndex.length;j++){
+                var coltext=$(row).children('td').eq(tdIndex[j]).text();
+                $(row).children('td').eq(tdIndex[j]).html("<div style='"+tdcssStr+"' title='"+coltext+"'>"+coltext+"</div>")
+            }
+        }
+
+
+	</script>
+</body>
+</html>

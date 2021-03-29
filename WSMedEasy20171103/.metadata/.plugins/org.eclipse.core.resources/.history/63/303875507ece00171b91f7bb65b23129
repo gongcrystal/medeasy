@@ -1,0 +1,9 @@
+package com.medimpact.medeasy.service.security;
+
+import java.util.List;
+import com.medimpact.medeasy.common.DataModel;
+import com.medimpact.medeasy.common.bean.security.SecRole;
+
+public interface RoleService {	
+	public DataModel<List<SecRole>> getRoles(SecRole form);
+}

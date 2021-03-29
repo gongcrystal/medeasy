@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC   
+    "-//mybatis.org//DTD Mapper 3.0//EN"  
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.medimpact.medeasy.dao.common.SimpleSelectDao">
+
+	<!-- <cache type="org.mybatis.caches.ehcache.EhcacheCache" /> -->
+
+	<resultMap id="simpleSelectMap" type="com.medimpact.medeasy.common.bean.common.SimpleSelectBi">
+		<result property="text" column="text" />
+		<result property="value" column="value" />
+	</resultMap>
+
+	<select id="getAreaSelect" parameterType="com.medimpact.medeasy.common.bean.common.SimpleSelectBi" resultMap="simpleSelectMap" useCache="true">
+		select area_name as text,area_code as value from area where 1=1
+		<if test="areaCode!=null and areaCode!=''">
+			and area_code=#{areaCode}
+		</if>
+	</select>
+
+	<select id="getHospitalSelect" parameterType="com.medimpact.medeasy.common.bean.common.SimpleSelectBi" resultMap="simpleSelectMap" useCache="true">
+		select hospital.MED_INSTITUTION_NAME as text,hospital.MED_INSTITUTION_CODE as value from hospital
+		where area_code=#{areaCode}
+		<if test="hospitalCode!=null and hospitalCode!=''">
+			and MED_INSTITUTION_CODE=#{hospitalCode}
+		</if>
+	</select>
+
+	<select id="getDeptSelect" parameterType="com.medimpact.medeasy.common.bean.common.SimpleSelectBi" resultMap="simpleSelectMap" useCache="true">
+		select dept_name as text,dept_code as value  from dept
+		where area_code=#{areaCode} and hospital_code=#{hospitalCode}
+	</select>
+
+	<select id="getDoctorSelect" parameterType="com.medimpact.medeasy.common.bean.common.SimpleSelectBi" resultMap="simpleSelectMap" useCache="true">
+		select physician_name text,physician_code value
+			from physician
+			where physician.area_code=#{areaCode} and physician.med_institution_code=#{hospitalCode}
+	</select>
+
+	<select id="getDurEventSelect" parameterType="com.medimpact.medeasy.common.bean.common.SimpleSelectBi" resultMap="simpleSelectMap" useCache="true">
+		select code_value value,code_desc text
+			from code
+			where code_type='dur_event'
+	</select>
+
+	<select id="getPatientTypeSelect" parameterType="com.medimpact.medeasy.common.bean.common.SimpleSelectBi" resultMap="simpleSelectMap" useCache="true">
+		select code_value value,code_desc text
+			from code
+			where code_type='patient_type'
+	</select>
+
+	<select id="getIrrCodeSelect" parameterType="com.medimpact.medeasy.common.bean.common.SimpleSelectBi" resultMap="simpleSelectMap" useCache="true">
+		select irrational_item_code value,description text from rx_evaluation_irrational_item
+	</select>
+
+	<select id="getDrugIdsFromDrugCatetory" resultMap="simpleSelectMap" useCache="true">
+		select category_code value,category_name text
+		from drug_category
+		where drug_category_id in
+		<foreach collection="array" item="cateId" index="index"
+				 open="(" close=")" separator=",">
+			#{cateId}
+		</foreach>
+	</select>
+
+	<select id="getDrugIdsFromBasicDrugCatetory" parameterType="string" resultMap="simpleSelectMap" useCache="true">
+		select CATEGORY_L1_ID value,CATEGORY_L1_NAME text from drug_category_hlevel
+		where CATEGORY_L2_ID=#{drugCate}
+	</select>
+	
+	<select id="getAlertTypeSelect" resultMap="simpleSelectMap" useCache="true">
+		SELECT event_code value,event_name text FROM dimension_event_code WHERE is_current = 'Y' and event_name is not null
+	</select>
+	
+	<select id="getAbxLevelSelect"  resultMap="simpleSelectMap" useCache="true">
+		SELECT code_value value,code_desc text FROM code WHERE code_type='ABX_LEVEL'
+	</select>
+	
+</mapper>  

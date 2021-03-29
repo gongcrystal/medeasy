@@ -1,0 +1,149 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC   
+    "-//mybatis.org//DTD Mapper 3.0//EN"  
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.medimpact.medeasy.dao.bp.herbalmedicineusedstatistics.HerbalMedicineUsedStatisticsDao">
+
+	<!-- <cache type="org.mybatis.caches.ehcache.EhcacheCache" /> -->
+	<resultMap id="huMap" type="com.medimpact.medeasy.common.bean.statistic.HerbalUseStBi">
+		<result column="hospital_name" property="name" />
+		<result column="decoction" property="decoction" />
+		<result column="nonDecoction" property="nonDecoction" />
+		<result column="decoctionAmount" property="decoctionAmount" />
+		<result column="nonDecoctionAmount" property="nonDecoctionAmount" />
+	</resultMap>
+
+	<sql id="selects">
+		hospital_name, sum(herb_decoction) decoction,sum(herb_none_decoction) nonDecoction,
+		sum(herb_decoction_amount)
+		decoctionAmount,sum(herb_none_decoction_amount) nonDecoctionAmount
+	</sql>
+
+	<sql id="searchCond">
+		<if test="startYear!=null and endYear!=null and startMon!=null and endMon!=null">
+			AND hb.year &gt; #{startYear} AND hb.year &lt; #{endYear}
+			OR (hb.year = #{startYear} AND hb.month &gt;=#{startMon} AND hb.year
+			&lt;#{endYear})
+			OR (hb.year = #{startYear} AND hb.month &gt;=#{startMon} AND hb.year=#{endYear} AND hb.month &lt;=#{endMon})
+			OR (hb.year =#{endYear}
+			AND hb.month
+			&lt;=#{endMon} AND hb.year &gt; #{startYear})
+			OR (hb.year =#{endYear} AND hb.month &lt;=#{endMon} AND hb.year=#{startYear} AND hb.month
+			&gt;
+			#{startMon})
+		</if>
+
+	</sql>
+
+	<!-- user hospital admin, 区不用选择，医院的选择也是唯一的，如果有时间范围，则检索时间 -->
+	<select id="listByHospital" parameterType="com.medimpact.medeasy.common.form.SearchForm" resultMap="huMap">
+		SELECT hospital_name, sum(herb_decoction) decoction,sum(herb_none_decoction) nonDecoction,
+		sum(herb_decoction_amount)
+		decoctionAmount,sum(herb_none_decoction_amount) nonDecoctionAmount
+
+		FROM subject_herb_used_analysis_1611 hb,dimension_hospital h
+		<where>
+			h.hospital_code=#{secUser.hospitalCode}
+
+			AND h.dimension_hospital_key = hb.dimension_hospital_key
+
+			<!-- <if test="startDate!=null and endDate!=null"> AND full_day BETWEEN #{startDate,jdbcType=DATE} AND #{endDate,jdbcType=DATE} </if> -->
+			<include refid="searchCond"></include>
+
+		</where>
+		GROUP BY hb.dimension_hospital_key ORDER BY hb.dimension_hospital_key
+
+		<if test="rowStart!=null and rowSize!=null">
+			limit #{rowStart},#{rowSize}
+		</if>
+	</select>
+	<!-- <select id="selectCountByHospital" parameterType="com.medimpact.medeasy.common.form.SearchForm" resultType="long"> SELECT COUNT(id) FROM subject_herb_used_analysis_1611 
+		hb <where> hospital.hospital_code=#{secUser.hospitalCode} <if test="startDate!=null and endDate!=null"> AND full_day BETWEEN #{startDate,jdbcType=DATE} 
+		AND #{endDate,jdbcType=DATE} </if> </where> </select> -->
+	<!-- user area admin, 所属的区下的，如果select 没有医院的话， 则是ara下的所有医院， 如果select选择医院，则是area+hospital,如果有时间范围，则检索时间 -->
+	<select id="listByArea" parameterType="com.medimpact.medeasy.common.form.SearchForm" resultMap="huMap">
+
+		SELECT * FROM
+
+		(SELECT * FROM dimension_hospital
+		<where>
+			<!-- area_id = #{secUser.hospitalBi.areaId} -->
+			area_code=#{secUser.hospitalBi.areaCode}
+			<!-- <if test="hospitalId!=null"> AND dimension_hospital_key = #{hospitalId} </if> -->
+
+			<if test="hospitalCode!=null">
+				AND hospital_code = #{hospitalCode}
+			</if>
+
+		</where>
+		) AS h
+
+		LEFT JOIN
+
+		(SELECT dimension_hospital_key, sum(herb_decoction) decoction,sum(herb_none_decoction) nonDecoction,
+		sum(herb_decoction_amount)decoctionAmount,sum(herb_none_decoction_amount) nonDecoctionAmount
+
+		FROM subject_herb_used_analysis_1611 hb
+		<!-- <where> <if test="startDate!=null and endDate!=null"> AND full_day BETWEEN #{startDate,jdbcType=DATE} AND #{endDate,jdbcType=DATE} </if> </where> -->
+
+		<where>
+			<include refid="searchCond"></include>
+		</where>
+
+		GROUP BY hb.dimension_hospital_key ORDER BY hb.dimension_hospital_key
+		) AS hb1
+
+		ON hb1.dimension_hospital_key = h.dimension_hospital_key
+
+		<if test="rowStart!=null and rowSize!=null">
+			limit #{rowStart},#{rowSize}
+		</if>
+
+	</select>
+	<!-- <select id="selectCountByArea" parameterType="com.medimpact.medeasy.common.form.SearchForm" resultType="long"> SELECT COUNT(dimension_hospital_key) 
+		FROM dimension_hospital <where> area_id = #{areaId} area_code = #{areaCode} <if test="hospitalCode!=null"> AND dimension_hospital_key = #{hospitalId} hospital_code=#{hospitalCode} 
+		</if> </where> </select> -->
+	<!-- user sys admin, 所属的区下的，如果select 没有医院的话， 则是ara下的所有医院， 如果select选择医院，则是area+hospital,如果有时间范围，则检索时间 -->
+	<select id="listBySys" parameterType="com.medimpact.medeasy.common.form.SearchForm" resultMap="huMap">
+
+		SELECT
+		<include refid="selects"></include>
+		FROM subject_herb_used_analysis_1611 hb,dimension_hospital h
+		<where>
+			h.dimension_hospital_key = hb.dimension_hospital_key
+			<include refid="searchCond"></include>
+		</where>
+		GROUP BY hb.dimension_hospital_key ORDER BY hb.dimension_hospital_key
+
+		<!-- <if test="rowStart!=null and rowSize!=null"> limit #{rowStart},#{rowSize} </if> -->
+	</select>
+
+	<!-- <select id="selectCountBySys" parameterType="com.medimpact.medeasy.common.form.SearchForm" resultType="long"> SELECT COUNT(dimension_hospital_key) 
+		FROM dimension_hospital <where> <if test="areaId!=null"> AND area_id = #{areaId} </if> <if test="hospitalId!=null"> AND dimension_hospital_key = #{hospitalId} 
+		</if> <if test="areaCode!=null"> AND area_code = #{areaCode} </if> <if test="hospitalCode!=null"> AND hospital_code = #{hospitalCode} </if> </where> </select> -->
+	<!-- Dr -->
+	<select id="listByDr" parameterType="com.medimpact.medeasy.common.form.SearchForm" resultMap="huMap">
+		SELECT hospital_name, sum(herb_decoction) decoction,sum(herb_none_decoction) nonDecoction,
+		sum(herb_decoction_amount)
+		decoctionAmount,sum(herb_none_decoction_amount) nonDecoctionAmount
+
+		FROM subject_herb_used_analysis_1611 hb,dimension_hospital h
+		<where>
+			hb.user_id = #{secUser.id}
+			AND h.dimension_hospital_key = hb.dimension_hospital_key
+			<if test="startDate!=null and endDate!=null">
+				AND full_day BETWEEN #{startDate,jdbcType=DATE} AND #{endDate,jdbcType=DATE}
+			</if>
+		</where>
+
+		GROUP BY hb.dimension_hospital_key ORDER BY hb.dimension_hospital_key
+
+		<if test="rowStart!=null and rowSize!=null">
+			limit #{rowStart},#{rowSize}
+		</if>
+	</select>
+
+	<!-- <select id="selectCountByDr" parameterType="com.medimpact.medeasy.common.form.SearchForm" resultType="long"> SELECT COUNT(id) FROM subject_herb_used_analysis_1611 
+		hb <where> hb.user_id = #{secUser.id} <if test="startDate!=null and endDate!=null"> AND full_day BETWEEN #{startDate,jdbcType=DATE} AND #{endDate,jdbcType=DATE} 
+		</if> </where> </select> -->
+</mapper>  

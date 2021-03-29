@@ -1,0 +1,76 @@
+<div id="top" th:fragment="top">
+	<div id="navbar" class="navbar navbar-default          ace-save-state">
+		<!-- left part -->
+		<div class="navbar-container ace-save-state" id="navbar-container">
+			<div class="navbar-header pull-left">
+				<a class="navbar-brand">
+					<small> <i class="fa fa-leaf"></i> Crystal
+					</small>
+				</a>
+			</div>
+		</div>
+
+		<!-- 个人信息 -->
+		<div class="navbar-buttons navbar-header pull-right" role="navigation">
+			<ul class="nav ace-nav">
+				<li class="light-blue dropdown-modal">
+					<a data-toggle="dropdown" href="#" class="dropdown-toggle">
+						<img class="nav-user-photo" src="images/girl.jpg" alt="Crystal's Photo" /> <span class="user-info"> <small>欢迎,</small> 李小四
+						</span> <i class="ace-icon fa fa-caret-down"></i>
+					</a>
+					<ul class="user-menu dropdown-menu-right dropdown-menu dropdown-yellow dropdown-caret dropdown-close">
+						<li>
+							<a href="#">
+								<i class="ace-icon fa fa-cog"></i> 修改头像
+							</a>
+						</li>
+
+						<li id="li_editPersonDetail">
+							<a href="#">
+								<i class="ace-icon fa fa-user"></i> 修改资料
+							</a>
+						</li>
+
+						<li class="divider"></li>
+
+						<li>
+							<a href="#">
+								<i class="ace-icon fa fa-power-off"></i> 退出登录
+							</a>
+						</li>
+					</ul>
+				</li>
+			</ul>
+		</div>
+	</div>
+	<!--  end of navbar -->
+
+	<!-- 修改个人资料dialog -->
+	<div class="modal fade" id="md_personDetail">
+		<div class="modal-dialog">
+			<div class="modal-content">
+				<div class="modal-header">
+					<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+					<h4 class="modal-title">
+						<span>个人资料</span>
+					</h4>
+				</div>
+				<div class="modal-body">Hi</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+<div id="left" th:fragment="left">
+	<div id="sidebar" class="sidebar  responsive   ace-save-state">
+		<script type="text/javascript">
+			try {
+				ace.settings.loadState('sidebar')
+			} catch (e) {
+			}
+		</script>
+
+		<ul class="nav nav-list" id="menu_ul">			
+		</ul>
+	</div>
+</div>

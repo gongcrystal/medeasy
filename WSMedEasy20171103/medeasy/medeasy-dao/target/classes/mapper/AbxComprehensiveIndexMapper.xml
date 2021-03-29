@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC   
+    "-//mybatis.org//DTD Mapper 3.0//EN"  
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.medimpact.medeasy.dao.bp.abxcomprehensiveindex.AbxComprehensiveIndexDao">
+
+	<!-- <cache type="org.mybatis.caches.ehcache.EhcacheCache" /> -->
+	<resultMap id="abxComprehensiveIndexDataMap" type="com.medimpact.medeasy.common.bean.bp.AbxComprehensiveIndexBi">
+		<id property="id" column="id" />
+		<result property="perAbxVariety" column="perAbxVariety" />
+		<result property="abxAmount" column="abx_amount" />
+		<result property="abxAmountPercent" column="abxAmountPercent" />
+		<result property="abxRxAmountPercent" column="abxRxAmountPercent" />
+		<result property="outpatientAbxIvPercent" column="outpatientAbxIvPercent" />
+		<result property="outpatientAbxPercent" column="outpatientAbxPercent" />
+		<result property="abxUnrestrictPercent" column="abxUnrestrictPercent" />
+		<result property="abxRestrictPercent" column="abxRestrictPercent" />
+		<result property="abxIvCasePercent" column="abxIvCasePercent" />
+	</resultMap>
+
+	<select id="getAbxComprehensiveIndex" parameterType="com.medimpact.medeasy.common.bean.bp.AbxComprehensiveIndexBi" resultMap="abxComprehensiveIndexDataMap">
+		SELECT
+			ROUND(SUM(abx.abx_variety)/SUM(abx.outpatient_abx_amount),2) perAbxVariety,
+			SUM(abx.abx_amount) abx_amount,
+			ROUND(SUM(abx.abx_amount)/SUM(abx.outpatient_abx_amount),2) perAbxAmount,
+			ROUND(SUM(IF(patientType.patient_type_code = 'OUTPATIENT' || patientType.patient_type_code = 'URGENT_CARE',abx.abx_amount,0))/SUM(abx.drug_amount)*100,2) abxAmountPercent,
+			ROUND(SUM(IF(patientType.patient_type_code = 'OUTPATIENT' || patientType.patient_type_code = 'URGENT_CARE',abx.abx_rx_amount,0))/SUM(abx.rx_amount)*100,2) abxRxAmountPercent,
+			ROUND(SUM(IF(patientType.patient_type_code = 'OUTPATIENT' || patientType.patient_type_code = 'URGENT_CARE',abx.outpatient_abx_iv_amount,0))/SUM(abx.outpatient_amount)*100,2) outpatientAbxIvPercent,
+			ROUND(SUM(IF(patientType.patient_type_code = 'OUTPATIENT' || patientType.patient_type_code = 'URGENT_CARE',abx.outpatient_abx_amount,0))/SUM(abx.outpatient_amount)*100,2) outpatientAbxPercent,
+			ROUND(SUM(IF(patientType.patient_type_code = 'OUTPATIENT' || patientType.patient_type_code = 'URGENT_CARE',abx.abx_unrestrict_amount,0))/SUM(IF(patientType.patient_type_code ='OUTPATIENT' || patientType.patient_type_code = 'URGENT_CARE',abx.outpatient_amount,0))*100,2) abxUnrestrictPercent,
+			ROUND(SUM(IF(patientType.patient_type_code = 'OUTPATIENT' || patientType.patient_type_code = 'URGENT_CARE',abx.abx_restrict_amount,0))/SUM(IF(patientType.patient_type_code ='OUTPATIENT' || patientType.patient_type_code = 'URGENT_CARE',abx.outpatient_amount,0))*100,2) abxRestrictPercent,
+			ROUND(SUM(IF(patientType.patient_type_code = 'OUTPATIENT' || patientType.patient_type_code = 'URGENT_CARE',abx.abx_iv_case_num,0))/SUM(IF(patientType.patient_type_code ='OUTPATIENT' || patientType.patient_type_code = 'URGENT_CARE',abx.outpatient_amount,0))*100,2) abxIvCasePercent
+		FROM 
+			subject_abx_index_4111 abx,dimension_hospital hospital,
+			dimension_dept dept,
+			dimension_doctor doctor,
+			dimension_patient_type patientType
+		WHERE abx.dimension_hospital_key = hospital.dimension_hospital_key
+			AND abx.dept_key = dept.dept_key
+			AND abx.dimension_doctor_key = doctor.dimension_doctor_key
+			AND abx.dimension_patient_type = patientType.dimension_patient_type
+			<include refid="operateCon"></include>
+			<include refid="serCondition"></include>
+	</select>
+
+	<sql id="serCondition">
+		<if test="startDate!=null and startDate.trim()!=''">
+			<![CDATA[AND CONCAT(abx.year,'-',IF(abx.month<10,CONCAT('0',abx.month),abx.month)) >= #{startDate}]]>
+		</if>
+		<if test="endDate!=null and endDate.trim()!=''">
+			<![CDATA[AND CONCAT(abx.year,'-',IF(abx.month<10,CONCAT('0',abx.month),abx.month)) <= #{endDate}]]>
+		</if>
+		<if test="patientTypeKey!=null and patientTypeKey.trim()!='' and patientTypeKey=='OUTPATIENT_URGENT'">
+			AND (patientType.patient_type_code = 'OUTPATIENT' or patientType.patient_type_code = 'URGENT_CARE')
+		</if>
+		<if test="patientTypeKey!=null and patientTypeKey.trim()!='' and patientTypeKey!='OUTPATIENT_URGENT'">
+			AND patientType.patient_type_code = #{patientTypeKey}
+		</if>
+	</sql>
+	
+	<sql id="operateCon">
+		<if test="operateLevel==1">
+			<if test="areaKey!=null and areaKey.trim()!=''">
+				AND hospital.area_code = #{areaKey}
+			</if>
+			<if test="hospitalKey!=null and hospitalKey.trim()!=''">
+				AND hospital.hospital_code = #{hospitalKey}
+			</if>
+			<if test="deptSerKey!=null and deptSerKey.trim()!=''">
+				AND dept.dept_code = #{deptSerKey}
+			</if>
+			<if test="physicianKey!=null and physicianKey.trim()!=''">
+				AND doctor.doctor_code = #{physicianKey}
+			</if>
+		</if>
+		<if test="operateLevel==2">
+			AND hospital.area_code = #{secUser.areaCode}
+			<if test="hospitalKey!=null and hospitalKey.trim()!=''">
+				AND hospital.hospital_code = #{hospitalKey}
+			</if>
+			<if test="deptSerKey!=null and deptSerKey.trim()!=''">
+				AND dept.dept_code = #{deptSerKey}
+			</if>
+			<if test="physicianKey!=null and physicianKey.trim()!=''">
+				AND doctor.doctor_code = #{physicianKey}
+			</if>
+		</if>
+		<if test="operateLevel==3">
+			AND hospital.area_code = #{secUser.areaCode}
+			AND hospital.hospital_code = #{secUser.hospitalCode}
+			<if test="deptSerKey!=null and deptSerKey.trim()!=''">
+				AND dept.dept_code = #{deptSerKey}
+			</if>
+			<if test="physicianKey!=null and physicianKey.trim()!=''">
+				AND doctor.doctor_code = #{physicianKey}
+			</if>
+		</if>
+		<!--if test="operateLevel==4">
+			AND dept.dept_key = #{secUser.deptId}
+			<if test="areaKey!=null and areaKey.trim()!=''">
+				AND hospital.area_code = #{areaKey}
+			</if>
+			<if test="hospitalKey!=null and hospitalKey.trim()!=''">
+				AND hospital.hospital_code = #{hospitalKey}
+			</if>
+			<if test="physicianKey!=null and physicianKey.trim()!=''">
+				AND doctor.doctor_code = #{physicianKey}
+			</if>
+		</if-->
+		<if test="operateLevel==6">
+			AND hospital.area_code = #{secUser.areaCode}
+			AND hospital.hospital_code = #{secUser.hospitalCode}
+			AND doctor.doctor_code = #{secUser.doctorCode}
+			AND dept.dept_code = #{secUser.deptCode}
+		</if>
+	</sql>
+	
+</mapper>  

@@ -1,0 +1,74 @@
+package com.medimpact.medeasy.service.basicdt;
+
+import java.util.List;
+
+import javax.annotation.Resource;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.medimpact.medeasy.common.DataModel;
+import com.medimpact.medeasy.common.bean.basicdt.DrRank;
+import com.medimpact.medeasy.dao.basicdt.DrRankDao;
+import com.medimpact.medeasy.dao.security.AuthDao;
+import com.medimpact.medeasy.dao.security.UserDao;
+import com.medimpact.medeasy.service.security.AccountHelper;
+
+/**
+ * @author Crystal E-mail:
+ * @version 创建时间：2017年9月15日 类说明
+ */
+@Service
+public class DrRankService {
+	
+
+	@Resource
+	private DrRankDao dRankDao;
+	
+	@Resource
+	private AuthDao authDao;
+	
+	@Resource
+	private UserDao userDao;
+
+	public DrRank getDrRankById(Integer id) {
+		
+		return dRankDao.getDrRankById(id);
+	}
+	public DataModel<List<DrRank>> getDrRanks(DrRank form){
+		
+		System.out.println("current user!!!!!!!!!!!="+AccountHelper.getUserName());
+		System.out.println("*****"+authDao.getRoleNamesByUrl("/basicdt/drRank").size());;
+		System.out.println("*****"+userDao.getUserByname("admin").getUsername());;
+		
+		List<DrRank> li = dRankDao.getDrRanks(form); 
+		/*System.out.println("li.size="+li.size());*/
+		Long records =  dRankDao.selectCount(null);
+		Long total  =  records/form.getRows() +1;
+		/*System.out.println("total = "+total +" records="+records+" pager="+form.getPage());*/
+		return DataModel.getSucDataModal(li, form.getPage(), records, total,false);		
+	}
+	
+	public DataModel addDrRank(DrRank dRank){
+		
+		dRankDao.insert(dRank);
+		return DataModel.getNotDataSucDataModal();
+	}
+	
+	public DataModel updateDrRank(DrRank drRank){
+		dRankDao.update(drRank);
+		return DataModel.getNotDataSucDataModal();
+	}
+	
+	public DataModel delDrRank(DrRank drRank){
+		dRankDao.delete(drRank.getRankId());
+		return DataModel.getNotDataSucDataModal();
+		
+	}
+	
+	public DataModel  delDrRanks(List<Long> li){
+		dRankDao.deleteMultiple(li);
+		return DataModel.getNotDataSucDataModal();
+	}
+	
+}

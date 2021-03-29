@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC   
+    "-//mybatis.org//DTD Mapper 3.0//EN"  
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.medimpact.medeasy.dao.menu.RoleMenuDao">
+	<resultMap type="com.medimpact.medeasy.common.bean.RoleMenuBi" id="resultMap">
+		<id column="MENU_ID" property="menuId" />
+		<result column="MENU_NAME" property="menuName" />
+		<result column="MENU_URL" property="menuUrl" />
+		<result column="PARENT_ID" property="parentId" />
+		<result column="MENU_ORDER" property="menuOrder" />
+		<result column="MENU_ICON" property="menuIcon" />
+		<result column="MENU_TYPE" property="menuType" />
+		<result column="MENU_STATE" property="menuState" />
+		<result column="MENU_NAME" property="menuName" />
+		<result column="HAS_SUBMENU" property="hasSubMenu" />
+		<result column="MENU_CODE" property="menuCode" />
+		<result column="MAX_ORDERSUBMENU" property="maxOrderSubMenu" />
+	</resultMap>
+	<select id="insert" parameterType="com.medimpact.medeasy.common.bean.security.SecRole">
+		INSERT INTO role(id,name,description) values(#{id},#{name},#{description})
+	</select>
+</mapper>

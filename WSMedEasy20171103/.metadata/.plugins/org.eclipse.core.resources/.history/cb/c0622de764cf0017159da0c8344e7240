@@ -1,0 +1,8 @@
+package com.medimpact.medeasy.web.role;
+
+import org.springframework.stereotype.Controller;
+
+@Controller
+public class RoleCtrl {
+
+}

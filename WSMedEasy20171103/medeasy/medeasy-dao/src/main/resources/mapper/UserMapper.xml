@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC   
+    "-//mybatis.org//DTD Mapper 3.0//EN"  
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.medimpact.medeasy.dao.security.UserDao">
+
+	<!-- <cache type="org.mybatis.caches.ehcache.EhcacheCache" /> -->
+
+	<resultMap id="userMap" type="com.medimpact.medeasy.common.bean.security.SecUser">
+		<id property="id" column="id" />
+		<result property="areaCode" column="area_code" />
+		<result property="username" column="username" />
+		<result property="password" column="password" />
+		<result property="enabled" column="enabled" />
+		<result property="deptName" column="dept_name" />
+		<result property="hospitalName" column="hospital_name" />
+		<result property="hospitalId" column="hospital_id" />
+		<result property="hospitalCode" column="hospital_code" />
+		<result property="deptId" column="dept_id" />
+		<result property="name" column="name" />
+		<result property="lasted" column="lasted" />
+		<result property="created" column="created" />
+		
+
+		<!-- <result property="name" column="name" /> <result property="roleDescription" column="description" /> -->
+
+		<association property="role" javaType="com.medimpact.medeasy.common.bean.security.SecRole">
+			<result property="id" column="id" />
+			<result property="roleName" column="role_name" />
+			<result property="description" column="description" />
+		</association>	
+		
+	</resultMap>
+
+	<insert id="insert" parameterType="com.medimpact.medeasy.common.bean.security.SecUser">
+		INSERT INTO userbase(id,username,password,enabled,dept_name,hospital_name,
+		mobile,hospital_code,doctor_code,doctor_name,dept_code,create_time,last_update_time,area_code,area_name) 
+		values(#{id},#{username},#{password},#{enabled},#{deptName},#{hospitalName},
+		#{mobile},#{hospitalCode},#{doctorCode},#{doctorName},#{deptCode},now(),now(),#{areaCode},#{areaName});
+	</insert>
+
+	<select id="getUserByname" parameterType="string" resultMap="userMap" >
+		SELECT * FROM userbase  u  WHERE u.username = #{username} 
+	</select>
+
+	<!-- <select id="getUsers" parameterType="com.medimpact.medeasy.common.bean.security.SecUser" resultMap="userMap" useCache="true"> SELECT ub.id,ub.username,ub.created,ub.enabled,ub.lasted,ub.dept_name,ub.hospital_name,ub.name,r.description 
+		FROM userbase as ub, userbase_role as ur, role as r where ub.id=ur.user_id and ur.role_id=r.id ORDER BY ub.id <if test="rowStart!=null and rowSize!=null"> 
+		limit #{rowStart},#{rowSize} </if> </select> -->
+
+	<select id="getUsers" parameterType="com.medimpact.medeasy.common.bean.security.SecUser" resultMap="userMap" >
+		select * from userbase u, userbase_role ur, role r where u.id=ur.user_id and ur.role_id=r.id
+		ORDER BY u.id
+		<if test="rowStart!=null and rowSize!=null">
+			limit #{rowStart},#{rowSize}
+		</if>
+		;
+	</select>
+
+
+	<select id="vagueSearch" parameterType="com.medimpact.medeasy.common.bean.security.SecUser" >
+		SELECT * FROM userbase u, userbase_role ur, role r
+		<where>
+			<!-- <if test="id!=null"> AND id = #{id} </if> -->
+			<if test="name!=null">
+				AND u.name like concat ('%',#{name},'%')
+			</if>
+			<!-- <if test="username!=null"> AND username like #{username} </if> <if test="deptName!=null"> AND dept_name = #{deptName} </if> <if test="hospitalName!=null"> 
+				AND hospital_name = #{hospitalName} </if> -->
+			<if test="hospitalId!=null">
+				AND hospital_Id = #{hospitalId}
+			</if>
+			<if test="deptId!=null">
+				AND dept_Id = #{deptId}
+			</if>
+			AND u.id=ur.user_id and ur.role_id=r.id
+		</where>
+
+		ORDER BY u.id
+		<if test="rowStart!=null and rowSize!=null">
+			limit #{rowStart},#{rowSize}
+		</if>
+	</select>
+
+	<select id="selectCount" resultType="long" parameterType="com.medimpact.medeasy.common.bean.security.SecUser">
+		SELECT COUNT(id) from userbase;
+	</select> 
+	
+
+	<update id="update" parameterType="com.medimpact.medeasy.common.bean.security.SecUser">
+		UPDATE userbase u, userbase_role ur
+
+		<trim prefix="SET" suffixOverrides=",">
+
+			<if test="enabled!=null">
+				u.enabled = #{enabled},
+			</if>
+			
+			<if test="areaCode!=null">
+				u.area_code = #{areaCode},
+			</if>
+			
+			<if test="deptCode!=null">
+				u.dept_code = #{deptCode},
+			</if>
+			<if test="hospitalCode!=null">
+				u.hospital_code = #{hospitalCode},
+			</if>
+			<if test="deptName!=null">
+				u.dept_name = #{deptName},
+			</if>
+			<if test="hospitalName!=null">
+				u.hospital_name = #{hospitalName},
+			</if>
+			<if test="role.id!=null">
+				ur.role_id = #{role.id},
+			</if>
+		</trim>
+		WHERE u.id = ur.user_id AND u.username=#{username}
+	</update>
+
+</mapper>  

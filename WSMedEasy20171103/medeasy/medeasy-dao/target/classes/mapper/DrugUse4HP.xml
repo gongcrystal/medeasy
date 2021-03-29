@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC   
+    "-//mybatis.org//DTD Mapper 3.0//EN"  
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.medimpact.medeasy.dao.druguse.DrugUse4HPDao">
+
+	<resultMap type="com.medimpact.medeasy.common.bean.statistic.HospitalDrugUseStBi" id="hDrugUseMap">
+		<result column="hospital_name" property="hospitalName" />
+		<result column="area_name" property="areaName" />
+		<result column="regAmount" property="regAmount" />
+		<result column="rxAmount" property="rxAmount" />
+		<result column="drugSpecAmount" property="drugSpecAmount" />
+		<result column="mamount" property="mamount" />
+		<result column="rxAmount" property="rxAmount" />
+
+	</resultMap>
+
+	<sql id="searchCond">
+		<if test="areaCode!=null">
+			AND area_code = #{areaCode}
+		</if>
+
+		<if test="hospitalCode!=null">
+			AND hospital.hospital_code = #{hospitalCode}
+		</if>
+
+		<if test="startDate!=null and endDate!=null">
+			AND full_day BETWEEN #{startDate,jdbcType=DATE} AND #{endDate,jdbcType=DATE}
+		</if>
+
+	</sql>
+
+	<sql id="selects">
+		count(distinct reg_code) regAmount, count(distinct rx_code) rxAmount,
+		count(distinct dimesion_drug_key) drugSpecAmount, sum(amount)
+		mamount
+	</sql>
+
+	<sql id="concat">
+		du.dimension_calander_key=c.dimension_calander_key
+		AND du.dimension_hospital_key=hospital.dimension_hospital_key
+	</sql>
+
+	<sql id="fromTables">
+		subject_drug_use_analys_1311 du, dimension_calander c, dimension_hospital hospital
+	</sql>
+
+
+	<select id="listBySys" parameterType="com.medimpact.medeasy.common.form.SearchForm" resultMap="hDrugUseMap">
+		SELECT
+		<include refid="selects"></include>
+		FROM
+		<include refid="fromTables"></include>
+		<where>
+			<include refid="concat"></include>
+			<include refid="searchCond"></include>
+		</where>
+	</select>
+
+	<select id="listByArea" parameterType="com.medimpact.medeasy.common.form.SearchForm" resultMap="hDrugUseMap">
+		SELECT
+		<include refid="selects"></include>
+		FROM
+		<include refid="fromTables"></include>
+		<where>
+			<include refid="concat"></include>
+			AND hospital.area_code=#{secUser.areaCode}
+			<include refid="searchCond"></include>
+		</where>
+	</select>
+
+	<select id="listByHospital" parameterType="com.medimpact.medeasy.common.form.SearchForm" resultMap="hDrugUseMap">
+		SELECT
+		<include refid="selects"></include>
+		FROM
+		<include refid="fromTables"></include>
+		<where>
+			<include refid="concat"></include>
+			AND hospital.hospital_code=#{secUser.hospitalCode}
+			<include refid="searchCond"></include>
+		</where>
+	</select>
+
+</mapper>

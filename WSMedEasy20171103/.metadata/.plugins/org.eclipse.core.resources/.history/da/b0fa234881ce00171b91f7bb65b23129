@@ -1,0 +1,47 @@
+package com.medimpact.medeasy.web.security;
+
+import java.util.List;
+
+import javax.annotation.Resource;
+
+import org.springframework.http.MediaType;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import com.medimpact.medeasy.common.DataModel;
+import com.medimpact.medeasy.common.bean.basicdt.DrRank;
+import com.medimpact.medeasy.common.bean.security.SecRole;
+import com.medimpact.medeasy.service.security.RoleService;
+
+/**
+ * @author Crystal E-mail:
+ * @version 创建时间：2017年11月21日 类说明
+ */
+@Controller
+@RequestMapping("/role")
+public class RoleCtrl {
+	
+	@Resource
+	private RoleService roleService;
+	
+	@RequestMapping(value = "/getRoles", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+	@ResponseBody	
+	public DataModel<List<SecRole>> getRoles() {
+		return roleService.getRoles();
+	}
+	
+	@RequestMapping(value = "/delRole", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+	@ResponseBody
+	public DataModel delDrRank(@RequestBody SecRole form) {
+
+		System.out.println("delItem id= " + form.getId());
+		
+
+		return DataModel.getNotDataSucDataModal();
+
+	}
+
+}

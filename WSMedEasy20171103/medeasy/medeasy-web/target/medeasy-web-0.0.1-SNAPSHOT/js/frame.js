@@ -1,0 +1,3 @@
+jQuery.fn.aa=function(){
+	
+}

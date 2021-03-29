@@ -1,0 +1,282 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC   
+    "-//mybatis.org//DTD Mapper 3.0//EN"  
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.medimpact.medeasy.dao.bp.BaseDrugUsedStatistics.BaseDrugUsedStatisticsDao">
+
+	<resultMap id="baseDrugUsedStatisticsMap" type="com.medimpact.medeasy.common.bean.bp.BaseDrugUsedStatisticsBi">
+		<id property="id" column="id" />
+		<result property="hospitalName" column="hospital_name" />
+		<result property="areaName" column="area_name" />
+		<result property="doctorCount" column="doctorCount" />
+		<!-- <result property="deptName" column="dept_name" /> -->
+		<result property="deptCount" column="deptCount" />
+		<result property="baseDrugCount" column="baseDrugCount" />
+		<result property="patientCount" column="patientCount" />
+		<result property="diagnosisCount" column="diagnosisCount" />
+		<result property="countPercentage" column="countPercentage" />
+		<!-- <result property="amount" column="amount" /> -->
+		<!-- <result property="baseDrugAmount" column="baseDrugAmount" /> -->
+		<!-- <result property="amountPercentage" column="amountPercentage" /> -->
+		<result property="hospitalCode" column="hospital_code" />
+	</resultMap>
+
+	<resultMap id="map1" type="com.medimpact.medeasy.common.bean.bp.BaseDrugUsedStatisticsBi">
+		<result property="hospitalCode" column="hospital_code" />
+		<result property="baseDrugAmount" column="baseDrugAmount" />
+	</resultMap>
+
+	<resultMap id="map2" type="com.medimpact.medeasy.common.bean.bp.BaseDrugUsedStatisticsBi">
+		<result property="hospitalCode" column="hospital_code" />
+		<result property="amount" column="amount" />
+	</resultMap>
+
+
+	<select id="getBaseDrugUsed1Statistics" parameterType="com.medimpact.medeasy.common.bean.bp.BaseDrugUsedStatisticsBi" resultMap="map1">
+		SELECT
+		hospital.hospital_code,
+		<!-- SUM(IF(drug.is_basic = 1,basedrug.amount,0)) baseDrugAmount -->
+		SUM(basedrug.amount) baseDrugAmount
+		FROM subject_basedrug_used_1411 basedrug
+		JOIN
+		dimension_hospital hospital ON basedrug.dimension_hospital_key = hospital.dimension_hospital_key
+		<!-- JOIN dimension_drug drug ON	 -->
+		
+		JOIN 
+		(SELECT dimesion_drug_key,drug_basic_category, drug_code FROM dimension_drug 		
+		 WHERE FIND_IN_SET ('2-2',drug_basic_category)		
+		)drug  ON 
+		basedrug.dimesion_drug_key = drug.dimesion_drug_key
+		JOIN dimension_doctor doctor ON basedrug.dimension_doctor_key =
+		doctor.dimension_doctor_key
+		JOIN
+		dimension_dept dept ON basedrug.dept_key = dept.dept_key
+		JOIN dimension_calander calander ON
+		basedrug.dimension_calander_key =
+		calander.dimension_calander_key
+		JOIN dimension_patient_type patientType ON basedrug.dimension_patient_type =
+		patientType.dimension_patient_type
+		<if test="drugClassBtndrugcategoryid!=null and drugClassBtndrugcategoryid.trim()!=''">
+			JOIN(
+			SELECT
+			DISTINCT dd.LOCAL_DRUG_ID
+			FROM
+			drug_category dc,drug_category_mapping dm,drug dd
+			WHERE dc.drug_category_id = dm.drug_category_id
+			AND dd.DRUG_ID = dm.DRUG_ID
+			AND FIND_IN_SET(category_code,#{drugClassBtndrugcategoryid}) > 0
+			)selDrug ON drug.drug_code = selDrug.LOCAL_DRUG_ID
+		</if>
+		<!-- 药品名称 -->
+		<if test="drugClassBtndrugid!=null and drugClassBtndrugid.trim()!=''">
+			JOIN (
+			SELECT drug_code FROM dimension_drug WHERE FIND_IN_SET(drug_code,#{drugClassBtndrugid}) > 0
+			)selDrug ON drug.drug_code =
+			selDrug.drug_code
+		</if>
+		
+		<where>
+			hospital.dimension_hospital_key !=0
+			
+			<include refid="operateCon"></include>
+			<include refid="serCondition"></include>
+		</where>
+		GROUP BY hospital.hospital_code
+	</select>
+
+	<!-- 药品使用金额之和 -->
+	<select id="getBaseDrugUsedAmount" parameterType="com.medimpact.medeasy.common.bean.bp.BaseDrugUsedStatisticsBi" resultMap="map2">
+		SELECT
+		hospital.hospital_code,hospital.hospital_name,sum(a.drug_amount) amount
+		FROM
+		subject_drug_amount_perday a
+		LEFT JOIN dimension_calander calander
+		ON a.dimension_calander_key=calander.dimension_calander_key
+		LEFT JOIN dimension_hospital hospital ON
+		a.dimension_hospital_key=hospital.dimension_hospital_key
+		LEFT JOIN dimension_patient_type patientType ON
+		a.dimension_patient_type=patientType.dimension_patient_type
+
+		<where>
+			<include refid="operateCon"></include>
+			<include refid="serCondition1"></include>
+		</where>
+		GROUP BY hospital.hospital_code
+	</select>
+
+
+	<select id="getBaseDrugUsedStatistics" parameterType="com.medimpact.medeasy.common.bean.bp.BaseDrugUsedStatisticsBi" resultMap="baseDrugUsedStatisticsMap">
+		SELECT
+		dh.hospital_name,dh.area_name,base.* FROM
+		(
+		SELECT
+		hospital.hospital_code,hospital.hospital_name, hospital.area_name,
+		COUNT(DISTINCT doctor.doctor_code) doctorCount,
+		COUNT(DISTINCT
+		dept.dept_code) deptCount,
+		COUNT(DISTINCT a.drug_code) baseDrugCount,
+		COUNT(DISTINCT diags.diag_code) diagnosisCount,
+		COUNT(DISTINCT reg.reg_code)
+		patientCount,
+		ROUND(COUNT(DISTINCT a.drug_code)/498*100,2) countPercentage
+		<!-- SUM(basedrug.amount) amount, -->
+		<!-- SUM(IF(drug.is_basic = 1,basedrug.amount,0)) -->
+		<!-- SUM(basedrug.amount) 	baseDrugAmount -->
+		<!--, ROUND(SUM(IF(drug.is_basic = 1,basedrug.amount,0))/SUM(basedrug.amount)*100,2) amountPercentage -->
+		FROM subject_basedrug_used_1411
+		basedrug
+		JOIN dimension_hospital hospital ON basedrug.dimension_hospital_key = hospital.dimension_hospital_key
+		JOIN
+		<!-- dimension_drug drug ON -->
+		(SELECT dimesion_drug_key,drug_basic_category,drug_code FROM dimension_drug 		
+		 WHERE FIND_IN_SET ('2-2',drug_basic_category)
+		
+		)drug  ON
+		basedrug.dimesion_drug_key = drug.dimesion_drug_key
+		JOIN dimension_doctor doctor ON basedrug.dimension_doctor_key =
+		doctor.dimension_doctor_key
+		JOIN
+		dimension_dept dept ON basedrug.dept_key = dept.dept_key
+		JOIN dimension_calander calander ON
+		basedrug.dimension_calander_key =
+		calander.dimension_calander_key
+		JOIN dimension_patient_type patientType ON basedrug.dimension_patient_type =
+		patientType.dimension_patient_type
+		<if test="drugClassBtndrugid!=null and drugClassBtndrugid.trim()!=''">
+			JOIN (
+			SELECT drug_code FROM dimension_drug WHERE FIND_IN_SET(drug_code,#{drugClassBtndrugid}) > 0
+			)selDrug ON drug.drug_code =
+			selDrug.drug_code
+		</if>
+
+		<!-- 药品分类 -->
+		<if test="drugClassBtndrugcategoryid!=null and drugClassBtndrugcategoryid.trim()!=''">
+			JOIN(
+			SELECT
+			DISTINCT dd.LOCAL_DRUG_ID
+			FROM
+			drug_category dc,drug_category_mapping dm,drug dd
+			WHERE dc.drug_category_id = dm.drug_category_id
+			AND dd.DRUG_ID = dm.DRUG_ID
+			AND FIND_IN_SET(category_code,#{drugClassBtndrugcategoryid}) > 0
+			)selDrug ON drug.drug_code = selDrug.LOCAL_DRUG_ID
+		</if>
+		LEFT JOIN subject_basedrug_used_diags_1411 diags ON basedrug.id = diags.subject_basedrug_used_id
+		LEFT JOIN subject_basedrug_used_reg_1411 reg ON
+		basedrug.id = reg.subject_basedrug_used_id
+		<!-- LEFT JOIN (SELECT * FROM dimension_drug WHERE is_basic = 1) a ON basedrug.dimesion_drug_key =
+		a.dimesion_drug_key -->
+		LEFT JOIN (SELECT * FROM dimension_drug WHERE FIND_IN_SET ('2-2',drug_basic_category)) a ON basedrug.dimesion_drug_key =
+		a.dimesion_drug_key
+		
+		WHERE 1 = 1
+		<include refid="operateCon"></include>
+		<include refid="serCondition"></include>
+		GROUP BY hospital.hospital_code
+		) base
+		JOIN dimension_hospital dh
+		ON base.hospital_code = dh.hospital_code AND dh.is_current = 'Y'
+		<!-- <if test="rowStart!=null and rowSize!=null">
+			limit #{rowStart},#{rowSize}
+		</if> -->
+	</select>
+
+	<select id="getBaseDrugUsedCount" parameterType="com.medimpact.medeasy.common.bean.bp.BaseDrugUsedStatisticsBi" resultType="long">
+		SELECT
+		COUNT(1)
+		FROM(
+		SELECT
+		basedrug.*
+		FROM
+		subject_basedrug_used_1411 basedrug
+		JOIN dimension_hospital hospital ON basedrug.dimension_hospital_key =
+		hospital.dimension_hospital_key
+		JOIN dimension_drug drug ON basedrug.dimesion_drug_key = drug.dimesion_drug_key
+		JOIN dimension_calander calander ON
+		basedrug.dimension_calander_key = calander.dimension_calander_key
+		JOIN dimension_patient_type patientType ON basedrug.dimension_patient_type =
+		patientType.dimension_patient_type
+
+		<!-- 药品名称 -->
+		<if test="drugClassBtndrugid!=null and drugClassBtndrugid.trim()!=''">
+			JOIN (
+			SELECT drug_code FROM dimension_drug WHERE FIND_IN_SET(drug_code,#{drugClassBtndrugid}) > 0
+			)selDrug ON drug.drug_code =
+			selDrug.drug_code
+		</if>
+		<if test="drugClassBtndrugcategoryid!=null and drugClassBtndrugcategoryid.trim()!=''">
+			JOIN(
+			SELECT
+			DISTINCT dd.LOCAL_DRUG_ID
+			FROM
+			drug_category dc,drug_category_mapping dm,drug dd
+			WHERE dc.drug_category_id = dm.drug_category_id
+			AND dd.DRUG_ID = dm.DRUG_ID
+			AND FIND_IN_SET(category_code,#{drugClassBtndrugcategoryid}) > 0
+			)selDrug ON drug.drug_code = selDrug.LOCAL_DRUG_ID
+		</if>
+		WHERE 1 = 1
+		<include refid="operateCon"></include>
+		<include refid="serCondition"></include>
+		GROUP BY hospital.hospital_code
+		)a
+	</select>
+
+
+	<!-- basicDrugCategory快速分类 -->
+	<sql id="serCondition">
+		<!-- <if test="startDate!=null and startDate.trim()!=''"> <![CDATA[AND date_format(calander.full_day,'%Y-%m') >= #{startDate}]]> </if> <if test="endDate!=null 
+			and endDate.trim()!=''"> <![CDATA[AND date_format(calander.full_day,'%Y-%m') <= #{endDate}]]> </if> -->
+		<if test="startDate!=null and endDate!=null">
+			AND full_day BETWEEN #{startDate,jdbcType=DATE} AND #{endDate,jdbcType=DATE}
+		</if>
+
+		<if test="patientTypeKey!=null and patientTypeKey.trim()!=''">
+			AND patientType.patient_type_code = #{patientTypeKey}
+		</if>
+		<if test="basicDrugCategory=='ZSJ'">
+			AND basedrug.is_iv = 'Y'
+		</if>
+		<if test="basicDrugCategory!=null and basicDrugCategory!='ZSJ'">
+			<![CDATA[AND drug.drug_basic_category like concat('%',#{basicDrugCategory},'%')]]>
+
+		</if>
+	</sql>
+
+
+	<!-- 药品使用金额之和 -->
+	<sql id="serCondition1">
+
+		<if test="startDate!=null and endDate!=null">
+			AND full_day BETWEEN #{startDate,jdbcType=DATE} AND #{endDate,jdbcType=DATE}
+		</if>
+
+		<if test="patientTypeKey!=null and patientTypeKey.trim()!=''">
+			AND patientType.patient_type_code = #{patientTypeKey}
+		</if>
+	</sql>
+
+
+	
+
+	<!-- <sql id="operateCon"> <if test="operateLevel==2"> AND hospital.area_id = #{secUser.hospitalBi.areaId} </if> <if test="operateLevel==3"> AND hospital.dimension_hospital_key 
+		= #{secUser.hospitalId} </if> <if test="operateLevel==4"> AND dept.dept_key = #{secUser.deptId} </if> <if test="operateLevel==5"> AND hospital.dimension_hospital_key 
+		= #{secUser.hospitalId} AND dept.dept_key = #{secUser.deptId} </if> </sql> -->
+
+	<sql id="operateCon">
+		<if test="operateLevel==2">
+			AND hospital.area_code = #{secUser.areaCode}
+		</if>
+		<if test="operateLevel==3">
+			AND hospital.hospital_code = #{secUser.hospitalCode}
+		</if>
+		<if test="operateLevel==4">
+			AND dept.dept_key = #{secUser.deptId}
+		</if>
+		<if test="operateLevel==5">
+			AND hospital.dimension_hospital_key = #{secUser.hospitalId} AND dept.dept_key = #{secUser.deptId}
+		</if>
+
+	</sql>
+
+</mapper>  

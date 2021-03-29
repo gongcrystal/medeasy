@@ -1,0 +1,174 @@
+package com.medimpact.medeasy.common;
+
+import java.util.function.Supplier;
+
+
+public class DataModel<T> {
+
+    /**
+     * 异常堆栈
+     */
+    private StackTraceElement[] errorTrace;
+    /**
+     * 给前端的提示信息
+     */
+    private String prompt;
+    /**
+     * true:成功,false:失败
+     */
+    private boolean success;
+    /**
+     * 分页+数据
+     */
+    private Pagination pagination;
+
+    private T data;
+    
+    /**
+     * 兼容 DataTable的分页
+     */
+    private Long recordsTotal;    
+    private Long recordsFiltered;
+
+    public DataModel() {
+    }
+
+    public DataModel(StackTraceElement[] errorTrace, String prompt, boolean success, Pagination pagination, T data) {
+        this.errorTrace = errorTrace;
+        this.prompt = prompt;
+        this.success = success;
+        this.pagination = pagination;
+        this.data = data;
+    }
+
+    /**
+     * 无分页构造函数
+     *
+     * @param errorTrace
+     * @param prompt
+     * @param success
+     * @param data
+     */
+    public DataModel(StackTraceElement[] errorTrace, String prompt, boolean success, T data) {
+        this.errorTrace = errorTrace;
+        this.prompt = prompt;
+        this.success = success;
+        this.data = data;
+    }
+
+    /**
+     * 成功且有结果集的DataModal,不支持分页
+     *
+     * @param data
+     * @param <T>
+     * @return
+     */
+    public static <T> DataModel<T> getSucDataModal(T data) {
+        DataModel<T> d = new DataModel<T>(null, null, true, data);
+        return d;
+    }
+
+    /**
+     * 成功且有结果集的DataModal,支持分页
+     *
+     * @param data
+     * @param <T>
+     * @return
+     */
+    public static <T> DataModel<T> getSucDataModal(T data, Supplier<Pagination> paginationSupplier) {
+        DataModel<T> d = new DataModel<T>(null, null, true, paginationSupplier.get(), data);
+        return d;
+    }
+
+    /**
+     * 成功但没有结果集的DataModal
+     *
+     * @param <T>
+     * @return
+     */
+    public static <T> DataModel<T> getNotDataSucDataModal() {
+        DataModel<T> d = new DataModel<T>(null, null, true, null);
+        return d;
+    }
+
+    /**
+     * 失败的DataModal
+     *
+     * @param prompt
+     * @param errorTrace
+     * @param <T>
+     * @return
+     */
+    public static <T> DataModel<T> getFailDataModal(String prompt, StackTraceElement[] errorTrace) {
+        DataModel<T> d = new DataModel<T>(errorTrace, prompt, false, null);
+        return d;
+    }
+
+    /**
+     * 失败的DataModal
+     *
+     * @param prompt
+     * @param <T>
+     * @return
+     */
+    public static <T> DataModel<T> getFailDataModalNotException(String prompt) {
+        DataModel<T> d = new DataModel<T>(null, prompt, false, null);
+        return d;
+    }
+
+    public StackTraceElement[] getErrorTrace() {
+        return errorTrace;
+    }
+
+    public void setErrorTrace(StackTraceElement[] errorTrace) {
+        this.errorTrace = errorTrace;
+    }
+
+    public String getPrompt() {
+        return prompt;
+    }
+
+    public void setPrompt(String prompt) {
+        this.prompt = prompt;
+    }
+
+    public boolean isSuccess() {
+        return success;
+    }
+
+    public void setSuccess(boolean success) {
+        this.success = success;
+    }
+
+    public Pagination getPagination() {
+        return pagination;
+    }
+
+    public void setPagination(Pagination pagination) {
+        this.pagination = pagination;
+    }
+
+    public T getData() {
+        return data;
+    }
+
+    public void setData(T data) {
+        this.data = data;
+    }
+
+	public Long getRecordsTotal() {
+		return recordsTotal == null ? (pagination == null ? 0 : pagination.getTotalRows()) : recordsTotal;
+	}
+
+	public void setRecordsTotal(Long recordsTotal) {
+		this.recordsTotal = recordsTotal;
+	}
+
+	public Long getRecordsFiltered() {
+		return recordsFiltered == null ? (pagination == null ? 0 : pagination.getTotalRows()) : recordsFiltered;
+	}
+
+	public void setRecordsFiltered(Long recordsFiltered) {
+		this.recordsFiltered = recordsFiltered;
+	}
+}

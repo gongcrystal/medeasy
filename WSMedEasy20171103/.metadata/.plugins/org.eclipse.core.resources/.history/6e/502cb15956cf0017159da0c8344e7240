@@ -1,0 +1,5 @@
+package com.medimpact.medeasy.service.module;
+
+public interface ModuleService {
+
+}

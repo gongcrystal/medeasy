@@ -1,0 +1,30 @@
+package com.medimpact.medeasy.service.module;
+
+import java.util.List;
+
+import javax.annotation.Resource;
+
+import org.springframework.stereotype.Service;
+import com.medimpact.medeasy.common.bean.ModuleBi;
+import com.medimpact.medeasy.common.exception.BizException;
+import com.medimpact.medeasy.dao.module.ModuleDao;
+
+@Service
+public class ModuleServiceImpl implements ModuleService{
+	
+	@Resource
+	private ModuleDao  moduleDao;
+
+	@Override
+	public List<ModuleBi> listChildrenByParentId(Integer id) throws BizException {
+		// TODO Auto-generated method stub
+		return moduleDao.listChildrenByParentId(id);
+	}
+
+	@Override
+	public List<ModuleBi> listAllChildren(Integer id) throws BizException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+}

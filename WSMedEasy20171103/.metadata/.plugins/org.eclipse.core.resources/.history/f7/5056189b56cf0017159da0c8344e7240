@@ -1,0 +1,10 @@
+package com.medimpact.medeasy.dao.module;
+
+import java.util.List;
+
+import com.medimpact.medeasy.common.bean.ModuleBi;
+import com.medimpact.medeasy.dao.CommonDao;
+
+public interface ModuleDao extends CommonDao<ModuleBi>{	
+	List<ModuleBi> listChildrenByParentId(Integer id);
+}

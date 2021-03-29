@@ -1,0 +1,8 @@
+package com.medimpact.medeasy.common.vo;
+
+public class ZTreeNodeVo {
+	private Integer id;
+	private Integer pid;
+	private String name;
+
+}

@@ -1,0 +1,11 @@
+package com.medimpact.medeasy.service.security;
+
+import java.util.List;
+import com.medimpact.medeasy.common.DataModel;
+import com.medimpact.medeasy.common.bean.basicdt.DrRank;
+import com.medimpact.medeasy.common.bean.security.SecRole;
+
+public interface RoleService {	
+	public DataModel<List<SecRole>> getRoles(); //role的总数比较少，不用分页
+	public DataModel delRole(SecRole secRole);
+}

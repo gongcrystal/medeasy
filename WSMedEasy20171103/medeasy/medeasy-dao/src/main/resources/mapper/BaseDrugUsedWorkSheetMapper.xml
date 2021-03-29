@@ -1,0 +1,203 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC   
+    "-//mybatis.org//DTD Mapper 3.0//EN"  
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.medimpact.medeasy.dao.bp.basedrugusedworksheet.BaseDrugUsedWorkSheetDao">
+
+	<!-- <cache type="org.mybatis.caches.ehcache.EhcacheCache" /> -->
+	<resultMap id="resultMap" type="com.medimpact.medeasy.common.bean.BaseDrugSheetBi">
+		<id property="id" column="id" />
+		<result property="year" column="year" />
+		<result property="month" column="month" />
+		<!-- <result property="fullDay" column="full_day" /> -->
+
+		<result property="cVariety" column="cVariety" />
+		<result property="pVariety" column="pVariety" />
+		<result property="cPrice" column="cPrice" />
+		<result property="pPrice" column="pPrice" />
+
+		<result property="cDVariety" column="cDVariety" />
+		<result property="pDVariety" column="pDVariety" />
+		<result property="cDPrice" column="cDPrice" />
+		<result property="pDPrice" column="pDPrice" />
+
+		<result property="uCVariety" column="uCVariety" />
+		<result property="uPVariety" column="uPVariety" />
+		<result property="uCPrice" column="uCPrice" />
+		<result property="uPPrice" column="uPPrice" />
+
+		<result property="usedIv" column="basic_drug_used_iv" />
+		<result property="usedAbx" column="basic_drug_used_abx" />
+		<result property="usedCDecline" column="basic_drug_used_country_decline" />
+		<result property="usedPDecline" column="basic_drug_used_province_decline" />
+
+	</resultMap>
+
+
+	<sql id="searchCond">
+		<if test="startYear!=null and endYear!=null and startMon!=null and endMon!=null">
+		AND w.year &gt; #{startYear} AND w.year &lt; #{endYear}
+			OR (w.year = #{startYear} AND w.month &gt;=#{startMon} AND w.year
+			&lt;#{endYear})
+			OR (w.year = #{startYear} AND w.month &gt;=#{startMon} AND w.year=#{endYear} AND w.month &lt;=#{endMon})
+			OR (w.year =#{endYear}
+			AND w.month
+			&lt;=#{endMon} AND w.year &gt; #{startYear})
+			OR (w.year =#{endYear} AND w.month &lt;=#{endMon} AND w.year=#{startYear} AND w.month
+			&gt;
+			#{startMon})
+		</if>
+
+	</sql>
+
+	<sql id="gror">
+		GROUP BY year,month order by year, month
+	</sql>
+
+	<select id="listBySys" parameterType="com.medimpact.medeasy.common.form.SearchForm" resultMap="resultMap">
+		SELECT sum(basic_drug_country_variety) cVariety, sum(basic_drug_province_variety) pVariety,
+		sum(basic_drug_country_price) cPrice,
+		sum(basic_drug_province_price) pPrice,
+
+		sum(basic_drug_country_delivery_variety) cDVariety, sum(basic_drug_province_delivery_variety) pDVariety,
+		sum(basic_drug_country_delivery_price) cDPrice,
+		sum(basic_drug_province_delivery_price) pDPrice,
+
+		sum(basic_drug_used_country_variety) uCVariety,
+		sum(basic_drug_used_province_variety) uPVariety,
+		sum(basic_drug_used_country_price) uCPrice, sum(basic_drug_used_province_price) uPPrice,
+
+
+		sum(basic_drug_used_iv) usedIv, sum(basic_drug_used_abx) usedAbx,
+		sum(basic_drug_used_country_decline) usedCDecline,
+		sum(basic_drug_used_province_decline) usedPDecline,
+		year,month
+
+		from subject_base_drug_1511 w , dimension_hospital hospital
+		<where>
+			<!-- full_day BETWEEN #{startDate,jdbcType=DATE} AND #{endDate,jdbcType=DATE} -->
+
+			<include refid="searchCond"></include>
+
+			AND w.dimension_hospital_key = hospital.dimension_hospital_key
+
+			<if test="areaCode!=null">
+				AND area_code = #{areaCode}
+			</if>
+
+			<if test="hospitalCode!=null">
+				<!-- AND hospital.dimension_hospital_key = #{hospitalCode} -->
+				AND hospital.hospital_code = #{hospitalCode}
+			</if>
+
+		</where>
+
+		<!-- GROUP BY full_day ORDER BY full_day -->
+
+		<include refid="gror"></include>
+
+		<if test="rowStart!=null and rowSize!=null">
+			limit #{rowStart},#{rowSize}
+		</if>
+	</select>
+
+	<!-- <select id="selectCountBySys" parameterType="com.medimpact.medeasy.common.form.SearchForm" resultType="long"> SELECT count(distinct full_day) from 
+		subject_base_drug_1511 w, dimension_hospital hospital <where> full_day BETWEEN #{startDate,jdbcType=DATE} AND #{endDate,jdbcType=DATE} AND w.dimension_hospital_key 
+		= hospital.dimension_hospital_key <if test="areaCode!=null"> AND area_code = #{areaCode} </if> <if test="hospitalCode!=null"> AND hospital.dimension_hospital_key 
+		= #{hospitalCode} AND hospital.hospital_code = #{hospitalCode} </if> </where> </select> -->
+
+	<select id="listByArea" parameterType="com.medimpact.medeasy.common.form.SearchForm" resultMap="resultMap">
+		SELECT
+		
+		year,month, sum(basic_drug_country_variety) cVariety, sum(basic_drug_province_variety) pVariety,
+		sum(basic_drug_country_price) cPrice,
+		sum(basic_drug_province_price) pPrice,
+
+		sum(basic_drug_country_delivery_variety) cDVariety, sum(basic_drug_province_delivery_variety) pDVariety,
+		sum(basic_drug_country_delivery_price) cDPrice,
+		sum(basic_drug_province_delivery_price) pDPrice,
+
+		sum(basic_drug_used_country_variety) uCVariety,
+		sum(basic_drug_used_province_variety) uPVariety,
+		sum(basic_drug_used_country_price) uCPrice, sum(basic_drug_used_province_price) uPPrice,
+
+
+		sum(basic_drug_used_iv) usedIv, sum(basic_drug_used_abx) usedAbx,
+		sum(basic_drug_used_country_decline) usedCDecline,
+		sum(basic_drug_used_province_decline) usedPDecline
+
+		from subject_base_drug_1511 w , dimension_hospital hospital
+		<where>
+			<!-- full_day BETWEEN #{startDate,jdbcType=DATE} AND #{endDate,jdbcType=DATE} -->
+			<include refid="searchCond"></include>
+			AND hospital.area_code=#{secUser.hospitalBi.areaCode}
+			AND
+			w.dimension_hospital_key = hospital.dimension_hospital_key
+
+			<!-- <if test="areaId!=null"> AND area_id = #{areaId} </if> -->
+
+			<if test="hospitalCode!=null">
+				<!-- AND hospital.dimension_hospital_key = #{hospitalCode} -->
+				AND hospital.hospital_code = #{hospitalCode}
+			</if>
+
+		</where>
+
+		<!-- GROUP BY full_day ORDER BY full_day -->
+		<include refid="gror"></include>
+
+		<if test="rowStart!=null and rowSize!=null">
+			limit #{rowStart},#{rowSize}
+		</if>
+	</select>
+
+	<!-- <select id="selectCountByArea" parameterType="com.medimpact.medeasy.common.form.SearchForm" resultType="long"> SELECT count(distinct full_day) from 
+		subject_base_drug_1511 w, dimension_hospital hospital <where> full_day BETWEEN #{startDate,jdbcType=DATE} AND #{endDate,jdbcType=DATE} AND hospital.area_code=#{secUser.hospitalBi.areaCode} 
+		AND w.dimension_hospital_key = hospital.dimension_hospital_key <if test="hospitalCode!=null"> AND hospital.dimension_hospital_key = #{hospitalCode} AND 
+		hospital.hospital_code = #{hospitalCode} </if> </where> </select> -->
+
+
+	<select id="listByHospital" parameterType="com.medimpact.medeasy.common.form.SearchForm" resultMap="resultMap">
+		SELECT year,month,sum(basic_drug_country_variety) cVariety, sum(basic_drug_province_variety) pVariety,
+		sum(basic_drug_country_price) cPrice,
+		sum(basic_drug_province_price) pPrice,
+
+		sum(basic_drug_country_delivery_variety) cDVariety, sum(basic_drug_province_delivery_variety) pDVariety,
+		sum(basic_drug_country_delivery_price) cDPrice,
+		sum(basic_drug_province_delivery_price) pDPrice,
+
+		sum(basic_drug_used_country_variety) uCVariety,
+		sum(basic_drug_used_province_variety) uPVariety,
+		sum(basic_drug_used_country_price) uCPrice, sum(basic_drug_used_province_price) uPPrice,
+
+
+		sum(basic_drug_used_iv) usedIv, sum(basic_drug_used_abx) usedAbx,
+		sum(basic_drug_used_country_decline) usedCDecline,
+		sum(basic_drug_used_province_decline) usedPDecline
+
+		from subject_base_drug_1511 w , dimension_hospital hospital
+		<where>
+			<!-- full_day BETWEEN #{startDate,jdbcType=DATE} AND #{endDate,jdbcType=DATE} -->
+			<include refid="searchCond"></include>
+			AND hospital.hospital_code=#{secUser.hospitalCode}
+			AND
+			w.dimension_hospital_key = hospital.dimension_hospital_key
+
+			<!-- <if test="hospitalId!=null"> AND hospital.dimension_hospital_key = #{hospitalId} </if> -->
+
+		</where>
+
+		<!-- GROUP BY full_day ORDER BY full_day -->
+		<include refid="gror"></include>
+
+		<if test="rowStart!=null and rowSize!=null">
+			limit #{rowStart},#{rowSize}
+		</if>
+	</select>
+
+	<!-- <select id="selectCountByHospital" parameterType="com.medimpact.medeasy.common.form.SearchForm" resultType="long"> SELECT count(distinct full_day) 
+		from subject_base_drug_1511 w, dimension_hospital hospital <where> full_day BETWEEN #{startDate,jdbcType=DATE} AND #{endDate,jdbcType=DATE} AND hospital.hospital_code=#{secUser.hospitalCode} 
+		AND w.dimension_hospital_key = hospital.dimension_hospital_key <if test="areaId!=null"> AND area_id = #{areaId} </if> <if test="hospitalId!=null"> AND 
+		hospital.dimension_hospital_key = #{hospitalId} </if> </where> </select> -->
+
+</mapper>  

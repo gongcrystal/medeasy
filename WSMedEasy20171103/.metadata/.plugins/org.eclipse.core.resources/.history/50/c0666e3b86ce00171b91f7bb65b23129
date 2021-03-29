@@ -1,0 +1,21 @@
+.menu_click {
+	
+}
+.nav-tabs > li.active > a, .nav-tabs > li.active > a:focus, .nav-tabs > li.active > a:hover{
+	background-color: #438EB9;
+}
+
+
+.nav-tabs > li > a {
+    padding: 4px 6px 2px;
+}
+
+.tab-content {
+    border: 0px;
+    padding: 10px 1px;
+}
+iframe{
+	margin:0 auto;
+	width:100%;
+	height:100%;
+}

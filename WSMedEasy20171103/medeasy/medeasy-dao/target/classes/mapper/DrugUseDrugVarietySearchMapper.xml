@@ -1,0 +1,176 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC   
+    "-//mybatis.org//DTD Mapper 3.0//EN"  
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.medimpact.medeasy.dao.druguse.DrugUseDrugVarietySearchDao">
+
+	<resultMap type="com.medimpact.medeasy.common.bean.statistic.HospitalDrugUseDrugVarietyBi" id="hDrugUseMap">
+		<result column="MED_INSTITUTION_NAME" property="hospitalName" />
+		<result column="drugSpecAmount1" property="drugSpecAmount" />
+		<result column="drug_basic_category" property="drugBasicCatetory" />
+		<result column="bigRx1" property="bigRx" />
+	</resultMap>
+
+
+	<sql id="searchCond">
+		<if test="areaCode!=null">
+			AND area_code = #{areaCode}
+		</if>
+
+		<if test="hospitalCode!=null">
+			<!-- AND hospital.dimension_hospital_key = #{hospitalCode} -->
+			AND hospital.hospital_code = #{hospitalCode}
+		</if>
+		<if test="patientType!=null">
+			<!-- AND du.dimension_patient_type = #{patientType} -->
+
+			AND du.patient_type = #{patientType}
+		</if>
+
+		<if test="isIV=='Y'">
+			AND du.is_iv='Y'
+		</if>
+		
+		<if test="checkedNodesStr!=null">
+		<!-- <if test="checkedNodesStr!=null and (hLDrugCategory==null or hLDrugCategory.trim()!='') and (localDrugId==null and localDrugId.trim()=='')"> -->
+			AND du.dimesion_drug_key IN
+			(SELECT dd.dimesion_drug_key FROM drug, drug_category dc, drug_category_mapping dcm,
+			dimension_drug dd
+			<where>				
+				AND dcm.DRUG_ID=drug.DRUG_ID 
+				AND drug.LOCAL_DRUG_ID=drug_code 
+				AND dc.drug_category_id=dcm.drug_category_id
+				AND dc.drug_category_type=0
+				AND FIND_IN_SET(dc.category_code,#{checkedNodesStr})
+			</where>
+			)
+		</if>
+		<if test="localDrugId!=null">
+		<!-- <if test="localDrugId!=null and localDrugId.trim()!='' and (hLDrugCategory==null or hLDrugCategory.trim()!='')"> -->
+			and FIND_IN_SET(dd.drug_code,#{localDrugId}) > 0
+		</if>
+
+		<!-- <if test="drugCLi!=null">
+			AND du.dimesion_drug_key IN
+			(SELECT dd.dimesion_drug_key FROM drug, drug_category dc, drug_category_mapping dcm,
+			dimension_drug dd
+			<where>
+				dc.category_name IN
+				<foreach collection="drugCLi" item="element" open="(" separator="," close=")">
+					#{element}
+				</foreach>
+				AND dcm.DRUG_ID=drug.DRUG_ID AND drug.LOCAL_DRUG_ID=drug_code AND dc.drug_category_id=dcm.drug_category_id
+			</where>
+			)
+		</if> -->
+
+		<if test="startDate!=null and endDate!=null">
+			AND full_day BETWEEN #{startDate,jdbcType=DATE} AND #{endDate,jdbcType=DATE}
+		</if>
+
+		<if test="hLDrugCategory!=null and hLDrugCategory!='ZSJ' ">
+			AND du.dimesion_drug_key IN
+			(
+			SELECT d.dimesion_drug_key FROM dimension_drug d WHERE INSTR(d.drug_basic_category,#{hLDrugCategory})>0
+			)
+			<!-- AND INSTR(d.drug_basic_category,#{hLDrugCategory})>0; -->
+		</if>
+
+	</sql>
+
+	<sql id="selects">
+		du.dimension_hospital_key ,
+		sum(DISTINCT du.drug_variety_account) drugSpecAmount,
+		hospital.hospital_code,hospital.hospital_name,
+		sum(dISTINCT du.big_rx_account) bigRx,
+		dd.drug_basic_category
+	</sql>
+
+	<sql id="concat">
+		AND du.dimension_calander_key=c.dimension_calander_key
+		AND du.dimension_hospital_key=hospital.dimension_hospital_key
+		AND
+		hospital.dimension_hospital_key!=0
+		AND dd.dimesion_drug_key= du.dimesion_drug_key
+	</sql>
+
+	<sql id="fromTables">
+		subject_drug_use_analys_1311 du, dimension_calander c, dimension_hospital hospital,dimension_drug dd
+	</sql>
+
+	<select id="listBySys" parameterType="com.medimpact.medeasy.common.form.SearchForm" resultMap="hDrugUseMap">
+		SELECT MED_INSTITUTION_NAME, rst.* from
+		(
+		SELECT result.dimension_hospital_key,sum(result.drugSpecAmount) drugSpecAmount1,sum(result.bigRx) bigRx1,
+		result.hospital_code,result.drug_basic_category,result.hospital_name
+		FROM
+		(SELECT
+		<include refid="selects"></include>
+		FROM
+		<include refid="fromTables"></include>
+		<where>
+			<include refid="concat"></include>
+			<include refid="searchCond"></include>
+		</where>
+		GROUP BY hospital.hospital_code,rx_code
+		) result
+		GROUP BY result.hospital_code
+		) rst
+		LEFT JOIN hospital ON
+		hospital.MED_INSTITUTION_CODE=rst.hospital_code
+
+	</select>
+
+	<select id="listByArea" parameterType="com.medimpact.medeasy.common.form.SearchForm" resultMap="hDrugUseMap">
+		SELECT MED_INSTITUTION_NAME, rst.* from
+
+		(
+		SELECT result.dimension_hospital_key,sum(result.drugSpecAmount) drugSpecAmount1,sum(result.bigRx) bigRx1,
+		result.hospital_code,result.drug_basic_category,result.hospital_name
+		FROM
+		(
+		SELECT
+		<include refid="selects"></include>
+		FROM
+		<include refid="fromTables"></include>
+		<where>
+			hospital.area_code=#{secUser.areaCode}
+			<include refid="concat"></include>
+			<include refid="searchCond"></include>
+		</where>
+		GROUP BY hospital.hospital_code,rx_code
+		) result
+		GROUP BY result.hospital_code
+		) rst
+		LEFT JOIN hospital ON
+		hospital.MED_INSTITUTION_CODE=rst.hospital_code
+
+
+	</select>
+
+	<select id="listByHospital" parameterType="com.medimpact.medeasy.common.form.SearchForm" resultMap="hDrugUseMap">
+		SELECT MED_INSTITUTION_NAME, rst.* from
+
+		(
+		SELECT result.dimension_hospital_key,sum(result.drugSpecAmount) drugSpecAmount1,sum(result.bigRx) bigRx1,
+		result.hospital_code,result.drug_basic_category,result.hospital_name
+		FROM
+		(
+		SELECT
+		<include refid="selects"></include>
+		FROM
+		<include refid="fromTables"></include>
+		<where>
+			hospital.hospital_code=#{secUser.hospitalCode}
+			<include refid="concat"></include>
+			<include refid="searchCond"></include>
+		</where>
+		GROUP BY hospital.hospital_code,rx_code
+		) result
+		GROUP BY result.hospital_code
+		) rst
+		LEFT JOIN hospital ON
+		hospital.MED_INSTITUTION_CODE=rst.hospital_code
+
+	</select>
+</mapper>

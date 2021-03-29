@@ -1,0 +1,91 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta charset="utf-8" />
+<meta name="_csrf" content="${_csrf.token}"/>
+<meta name="_csrf_header" content="${_csrf.headerName}"/>
+
+<title>jqGrid - Ace Admin</title>
+
+
+<meta name="description" content="Dynamic tables and grids using jqGrid plugin" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+
+<!-- bootstrap & fontawesome -->
+<link rel="stylesheet" href="../../../plugins/ace/css/bootstrap.min.css" th:href="@{/plugins/ace/css/bootstrap.min.css}"></link>
+<link rel="stylesheet" href="../../../plugins/ace/font-awesome/4.5.0/css/font-awesome.min.css" th:href="@{/plugins/ace/font-awesome/4.5.0/css/font-awesome.min.css}" />
+
+<!-- page specific plugin styles -->
+<link rel="stylesheet" href="../../../plugins/ace/css/jquery-ui.min.css" th:href="@{/plugins/ace/css/jquery-ui.min.css}" />
+<link rel="stylesheet" href="../../../plugins/ace/css/bootstrap-datepicker3.min.css" th:href="@{/plugins/ace/css/bootstrap-datepicker3.min.css}" />
+<link rel="stylesheet" href="../../../plugins/ace/css/ui.jqgrid.min.css" th:href="@{/plugins/ace/css/ui.jqgrid.min.css}" />
+
+<!-- text fonts -->
+<link rel="stylesheet" href="../../../plugins/ace/css/fonts.googleapis.com.css" th:href="@{/plugins/ace/css/fonts.googleapis.com.css}" />
+
+<!-- ace styles -->
+<link rel="stylesheet" href="../../../plugins/ace/css/ace.min.css" class="ace-main-stylesheet" id="main-ace-style" th:href="@{/plugins/ace/css/ace.min.css}" />
+
+<!--[if lte IE 9]>
+			<link rel="stylesheet" href="assets/css/ace-part2.min.css" class="ace-main-stylesheet" />
+		<![endif]-->
+<link rel="stylesheet" href="../../../plugins/ace/css/ace-skins.min.css" th:href="@{/plugins/ace/css/ace-skins.min.css}" />
+<link rel="stylesheet" href="../../../plugins/ace/css/ace-rtl.min.css" th:href="@{/plugins/ace/css/ace-rtl.min.css}" />
+
+<!--[if lte IE 9]>
+		  <link rel="stylesheet" href="assets/css/ace-ie.min.css" />
+		<![endif]-->
+
+<!-- inline styles related to this page -->
+
+<!-- ace settings handler -->
+<script src="../../../plugins/ace//js/ace-extra.min.js" th:src="@{/plugins/ace//js/ace-extra.min.js}"></script>
+
+<!-- HTML5shiv and Respond.js for IE8 to support HTML5 elements and media queries -->
+
+<!--[if lte IE 8]>
+		<script src="assets/js/html5shiv.min.js"></script>
+		<script src="assets/js/respond.min.js"></script>
+		<![endif]-->
+</head>
+
+<meta charset="UTF-8">
+<title>Insert title here</title>
+</head>
+<body>
+
+ <form name='loginForm' action="" method='post'>  
+            <table>  
+                <tr>  
+                    <td>用户:):</td>  
+                    <td><input type='text' name='username' value=''></td>  
+                </tr>  
+                <tr>  
+                    <td>密码:</td>  
+                    <td><input type='password' name='password' /></td>  
+                </tr>  
+                <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}"/> 
+                <tr>  
+                    <td colspan='2'><input name="submit" type="submit" value="登录" /></td>  
+                </tr>  
+            </table>  
+            
+        </form>  
+        
+        <script src="../../../plugins/ace/js/bootstrap.min.js" th:src="@{/plugins/ace/js/bootstrap.min.js}"></script>
+<script src="../../../plugins/ace/js/jquery-2.1.4.min.js" th:src="@{/plugins/ace/js/jquery-2.1.4.min.js}"></script>
+<script src="../../../plugins/bootstrap-3.3.2/js/bootstrap.min.js" th:src="@{/plugins/bootstrap-3.3.2/js/bootstrap.min.js}"></script>
+	<script src="../../../plugins/bootstrap-3.3.2/js/bootstrap.js" th:src="@{/plugins/bootstrap-3.3.2/js/bootstrap.js}"></script>
+	<!-- page specific plugin scripts -->
+	<script src="../../../plugins/ace/js/bootstrap-datepicker.min.js" th:src="@{/plugins/ace/js/bootstrap-datepicker.min.js}"></script>
+	<script src="../../../plugins/ace/js/jquery.jqGrid.min.js" th:src="@{/plugins/ace/js/jquery.jqGrid.min.js}"></script>
+	<script src="../../../plugins/ace/js/grid.locale-en.js" th:src="@{/plugins/ace/js/grid.locale-en.js}"></script>
+
+	<!-- ace scripts -->
+	<script src="../../../plugins/ace/js/ace-elements.min.js" th:src="@{/plugins/ace/js/ace-elements.min.js}"></script>
+	<script src="../../../plugins/ace/js/ace.min.js" th:src="@{/plugins/ace/js/ace.min.js}"></script>
+
+</body>
+</html>

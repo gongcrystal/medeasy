@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC   
+    "-//mybatis.org//DTD Mapper 3.0//EN"  
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.medimpact.medeasy.dao.drugincome.DrugIncomeDao">
+
+	<resultMap type="com.medimpact.medeasy.common.bean.statistic.DrugIncomeStBi" id="drugIncomeMap">
+		<result column="item_name" property="drugItemName" />
+		<result column="mamount" property="mamount" />
+		<result column="regAmount" property="regAmount" /><!-- “就诊人次” -->
+		<result column="rxAmount" property="rxAmount" />
+	</resultMap>
+
+	<!-- 检索条件 -->
+	<sql id="searchCond">
+
+		<if test="areaCode!=null">
+			AND area_code = #{areaCode}
+		</if>
+
+		<if test="hospitalCode!=null">
+			<!-- AND hospital.dimension_hospital_key = #{hospitalCode} -->
+			AND hospital.hospital_code = #{hospitalCode}
+		</if>
+
+		<if test="patientType!=null">
+			AND patient_type = #{patientType}
+		</if>
+
+		<if test="startDate!=null and endDate!=null">
+			AND full_day BETWEEN #{startDate,jdbcType=DATE} AND #{endDate,jdbcType=DATE}
+		</if>
+
+	</sql>
+
+	<sql id="concatIncomeHpC">
+		income.dimension_hospital_key=hospital.dimension_hospital_key
+		AND income.dimension_calander_key=c.dimension_calander_key
+
+	</sql>
+
+	<sql id="selectItem">
+		sum(income.amount) mamount,sum(income.patient_amount) regAmount,
+		sum(income.rx_amount) rxAmount ,
+		income.dimension_drug_item_key,income.dimension_hospital_key,
+		income.patient_type,hospital.area_code,c.full_day
+	</sql>
+
+
+	<select id="listBySys" parameterType="com.medimpact.medeasy.common.form.SearchForm" resultMap="drugIncomeMap">
+		SELECT *
+		FROM
+		(
+		SELECT item.item_name, mamount, regAmount ,
+		rxAmount , item.type_js type_js1 , item.dimension_drug_item_key 
+		FROM dimension_drug_item item 
+		LEFT JOIN
+
+		(SELECT sum(incm.amount) mamount,
+		sum(incm.patient_amount) regAmount,
+		sum(incm.rx_amount) rxAmount,
+		incm.dimension_drug_item_key,incm.dimension_hospital_key,
+		incm.patient_type,hospital.area_code,c.full_day
+		FROM subject_drug_income_1312
+		incm,
+		dimension_hospital hospital, dimension_calander c
+		<where>
+			incm.dimension_hospital_key=hospital.dimension_hospital_key
+			AND
+			incm.dimension_calander_key=c.dimension_calander_key
+			<include refid="searchCond"></include>
+		</where>
+		GROUP BY incm.dimension_drug_item_key
+		) income
+		ON item.dimension_drug_item_key = income.dimension_drug_item_key
+		) rs6
+		WHERE rs6.type_js1=0
+		ORDER BY rs6.dimension_drug_item_key
+
+	</select>
+
+	<select id="listByArea" parameterType="com.medimpact.medeasy.common.form.SearchForm" resultMap="drugIncomeMap">
+		SELECT *
+		FROM
+		(
+		SELECT item.item_name, mamount, regAmount ,
+		rxAmount,item.type_js type_js1,
+		item.dimension_drug_item_key
+		FROM dimension_drug_item item
+		LEFT JOIN
+		(SELECT
+		<include refid="selectItem"></include>
+
+		FROM subject_drug_income_1312 income,dimension_hospital hospital, dimension_calander c
+		<where>
+			<include refid="concatIncomeHpC"></include>
+			<!-- AND hospital.area_id=#{secUser.hospitalBi.areaId} -->
+			AND hospital.area_code=#{secUser.areaCode}
+			<include refid="searchCond"></include>
+		</where>
+
+		GROUP BY income.dimension_drug_item_key
+
+		) AS tview
+
+		ON tview.dimension_drug_item_key=item.dimension_drug_item_key
+		) rs6
+		WHERE rs6.type_js1=0
+		ORDER BY rs6.dimension_drug_item_key
+	</select>
+
+	<select id="listByHospital" parameterType="com.medimpact.medeasy.common.form.SearchForm" resultMap="drugIncomeMap">
+		SELECT *
+		FROM
+		(
+		SELECT item.item_name, mamount, regAmount ,
+		rxAmount ,item.type_js type_js1 ,
+		item.dimension_drug_item_key
+		FROM dimension_drug_item item
+		LEFT JOIN
+		(SELECT
+		<include refid="selectItem"></include>
+
+		FROM subject_drug_income_1312 income,dimension_hospital hospital, dimension_calander c
+		<where>
+			<include refid="concatIncomeHpC"></include>
+			<!-- AND hospital.dimension_hospital_key=#{secUser.hospitalId} --> <!-- hospital admin -->
+			AND hospital.hospital_code=#{secUser.hospitalCode}
+			<include refid="searchCond"></include>
+		</where>
+		GROUP BY income.dimension_drug_item_key
+		) AS tview
+		ON tview.dimension_drug_item_key=item.dimension_drug_item_key		
+		) rs6
+		WHERE rs6.type_js1=0
+		ORDER BY rs6.dimension_drug_item_key
+
+	</select>
+
+</mapper>

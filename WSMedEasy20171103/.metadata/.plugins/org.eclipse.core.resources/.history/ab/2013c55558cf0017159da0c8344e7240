@@ -1,0 +1,5 @@
+package com.medimpact.medeasy.web.module;
+
+public class ModuleCtrl {
+
+}

@@ -1,0 +1,46 @@
+package com.medimpact.medeasy.web.menu;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.annotation.Resource;
+import javax.validation.constraints.Null;
+
+import org.springframework.http.MediaType;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import com.medimpact.medeasy.common.bean.MenuBi;
+import com.medimpact.medeasy.service.menu.MenuService;
+import com.mysql.fabric.xmlrpc.base.Array;
+
+@Controller
+@RequestMapping("/sys")
+public class MenuCtrl {
+	
+	@Resource
+	private MenuService menuService;
+	
+	
+	/*所有菜单并填充每个菜单的子菜单列表*/
+	@RequestMapping(value = "/listMenus", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+	@ResponseBody
+	public List<MenuBi>  listSubMenuByParentId (@RequestParam("parentId") Integer parentId) {
+		System.out.println("parentId="+parentId);
+		List<MenuBi> list = menuService.listAllMenu(parentId);			
+		return list;
+	}
+	
+	/*根据parenId，只显示紧邻的子菜单，并不显示children's children*/
+	@RequestMapping(value = "/listMenus", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+	@ResponseBody
+	public List<MenuBi>  listL1SubMenuByParentId (@RequestParam("parentId") Integer parentId) {
+		System.out.println("parentId="+parentId);
+			
+		return null;
+	}
+	
+}

@@ -1,0 +1,5 @@
+package com.medimpact.medeasy.common.vo;
+
+public class MenuVo {
+
+}

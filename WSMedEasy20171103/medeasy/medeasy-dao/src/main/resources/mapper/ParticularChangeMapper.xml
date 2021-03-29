@@ -1,0 +1,198 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC   
+    "-//mybatis.org//DTD Mapper 3.0//EN"  
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.medimpact.medeasy.dao.particularchange.ParticularChangeDao">
+
+	<!-- <cache type="org.mybatis.caches.ehcache.EhcacheCache" /> -->
+	<resultMap id="particularChangeDataMap" type="com.medimpact.medeasy.common.bean.particularchange.ParticularChangeBi">
+		<result property="drugName" column="drug_name" />
+		<result property="dosageForm" column="dosage_form" />
+		<result property="spec" column="spec" />
+		<result property="drugPrice" column="drug_price" />
+		<result property="manufacture" column="manufacture" />
+		<result property="totalPrice" column="total_price" />
+		<result property="avgRate" column="avgRate"/>
+		<result property="areaNum" column="areaNum" />
+		<result property="hospitalNum" column="hospitalNum" />
+		<result property="deptNum" column="deptNum" />
+		<result property="doctorNum" column="doctorNum" />
+		<result property="month1" column="month_1" />
+		<result property="rate1" column="rate1" />
+		<result property="month2" column="month_2" />
+		<result property="rate2" column="rate2" />
+		<result property="month3" column="month_3" />
+		<result property="rate3" column="rate3" />
+		<result property="month4" column="month_4" />
+		<result property="rate4" column="rate4" />
+		<result property="month5" column="month_5" />
+		<result property="rate5" column="rate5" />
+		<result property="month6" column="month_6" />
+		<result property="rate6" column="rate6" />
+		<result property="month7" column="month_7" />
+		<result property="rate7" column="rate7" />
+		<result property="month8" column="month_8" />
+		<result property="rate8" column="rate8" />
+		<result property="month9" column="month_9" />
+		<result property="rate9" column="rate9" />
+		<result property="month10" column="month_10" />
+		<result property="rate10" column="rate10" />
+		<result property="month11" column="month_11" />
+		<result property="rate11" column="rate11" />
+		<result property="month12" column="month_12" />
+		<result property="rate12" column="rate12" />
+	</resultMap>
+
+	<select id="getParticularChange" parameterType="com.medimpact.medeasy.common.bean.particularchange.ParticularChangeBi" resultMap="particularChangeDataMap">
+		SELECT D.drug_name,dosage_form,spec,drug_price,manufacture
+				,convert((ABS(rate1)+ABS(rate2)+ABS(rate3)+ABS(rate4)+ABS(rate5)+ABS(rate6)+ABS(rate7)+ABS(rate8)+ABS(rate9)+ABS(rate10)+ABS(rate11)+ABS(rate12))/(if(month_1 is null or month_1=0,0,1)+if(month_2 is null or month_2=0,0,1)+if(month_3 is null or month_3=0,0,1)+if(month_4 is null or month_4=0,0,1)+if(month_5 is null or month_5=0,0,1)+if(month_6 is null or month_6=0,0,1)+if(month_7 is null or month_7=0,0,1)+if(month_8 is null or month_8=0,0,1)+if(month_9 is null or month_9=0,0,1)+if(month_10 is null or month_10=0,0,1)+if(month_11 is null or month_11=0,0,1)+if(month_12 is null or month_12=0,0,1)) ,decimal(20,2))as avgRate
+				,base.*
+		FROM (
+			select d.drug_code,
+				FORMAT(sum(s.total_price),2) as total_price,
+				sum(s.total_price) as total_price1,
+				count(distinct area_code) areaNum,
+				COUNT(DISTINCT hospital_code) hospitalNum,
+				COUNT(DISTINCT dept_code) deptNum,
+				COUNT(DISTINCT doctor_code) doctorNum,
+				case when sum(s.month_0)=0 or sum(s.month_1)=0 then '-' else convert(100*(sum(s.month_1)-sum(s.month_0))/sum(s.month_0),decimal(20,2)) end rate1,
+				case when sum(s.month_1)=0 or sum(s.month_2)=0 then '-' else convert(100*(sum(s.month_2)-sum(s.month_1))/sum(s.month_1),decimal(20,2)) end rate2,
+				case when sum(s.month_2)=0 or sum(s.month_3)=0 then '-' else convert(100*(sum(s.month_3)-sum(s.month_2))/sum(s.month_2),decimal(20,2)) end rate3,
+				case when sum(s.month_3)=0 or sum(s.month_4)=0 then '-' else convert(100*(sum(s.month_4)-sum(s.month_3))/sum(s.month_3),decimal(20,2)) end rate4,
+				case when sum(s.month_4)=0 or sum(s.month_5)=0 then '-' else convert(100*(sum(s.month_5)-sum(s.month_4))/sum(s.month_4),decimal(20,2)) end rate5,
+				case when sum(s.month_5)=0 or sum(s.month_6)=0 then '-' else convert(100*(sum(s.month_6)-sum(s.month_5))/sum(s.month_5),decimal(20,2)) end rate6,
+				case when sum(s.month_6)=0 or sum(s.month_7)=0 then '-' else convert(100*(sum(s.month_7)-sum(s.month_6))/sum(s.month_6),decimal(20,2)) end rate7,
+				case when sum(s.month_7)=0 or sum(s.month_8)=0 then '-' else convert(100*(sum(s.month_8)-sum(s.month_7))/sum(s.month_7),decimal(20,2)) end rate8,
+				case when sum(s.month_8)=0 or sum(s.month_9)=0 then '-' else convert(100*(sum(s.month_9)-sum(s.month_8))/sum(s.month_8),decimal(20,2)) end rate9,
+				case when sum(s.month_9)=0 or sum(s.month_10)=0 then '-' else convert(100*(sum(s.month_10)-sum(s.month_9))/sum(s.month_9),decimal(20,2)) end rate10,
+				case when sum(s.month_10)=0 or sum(s.month_11)=0 then '-' else convert(100*(sum(s.month_11)-sum(s.month_10))/sum(s.month_10),decimal(20,2)) end rate11,
+				case when sum(s.month_11)=0 or sum(s.month_12)=0 then '-' else convert(100*(sum(s.month_12)-sum(s.month_11))/sum(s.month_11),decimal(20,2)) end rate12,
+				FORMAT(sum(s.month_1),2) as month_1,
+				FORMAT(sum(s.month_2),2) as month_2,
+				FORMAT(sum(s.month_3),2) as month_3,
+				FORMAT(sum(s.month_4),2) as month_4,
+				FORMAT(sum(s.month_5),2) as month_5,
+				FORMAT(sum(s.month_6),2) as month_6,
+				FORMAT(sum(s.month_7),2) as month_7,
+				FORMAT(sum(s.month_8),2) as month_8,
+				FORMAT(sum(s.month_9),2) as month_9,
+				FORMAT(sum(s.month_10),2) as month_10,
+				FORMAT(sum(s.month_11),2) as month_11,
+				FORMAT(sum(s.month_12),2) as month_12
+			from (
+				select * from subject_drug_unusual_used_analysis_1211 where 1=1
+		<if test="startY != null and startY !='' ">
+			and year=#{startY}
+		</if>
+		<if test="basicDrugCategory != null and basicDrugCategory !='' and basicDrugCategory =='ZSJ' ">
+			and is_iv='Y'
+		</if>
+				) s
+			  join dimension_drug d on d.dimesion_drug_key=s.dimesion_drug_key
+		<if test="drugClassBtndrugid!=null and drugClassBtndrugid.trim()!=''">
+			and FIND_IN_SET(d.drug_code,#{drugClassBtndrugid}) > 0
+		</if>
+		<if test="basicDrugCategory != null and basicDrugCategory !='' and basicDrugCategory !='ZSJ' ">
+			and FIND_IN_SET(#{basicDrugCategory},d.drug_basic_category) > 0
+		</if>
+		<if test="(drugClassBtndrugid==null or drugClassBtndrugid.trim()=='') and drugClassBtndrugcategoryid!=null and drugClassBtndrugcategoryid.trim()!=''">
+			JOIN(
+			SELECT
+			DISTINCT dd.LOCAL_DRUG_ID
+			FROM
+			drug_category dc,drug_category_mapping dm,drug dd
+			WHERE dc.drug_category_id = dm.drug_category_id
+			AND dd.DRUG_ID = dm.DRUG_ID
+			and dc.drug_category_type=0
+			AND FIND_IN_SET(category_code,#{drugClassBtndrugcategoryid}) > 0
+			)selDrug ON d.drug_code = selDrug.LOCAL_DRUG_ID
+		</if>
+			  join dimension_hospital h on h.dimension_hospital_key=s.dimension_hospital_key
+		<if test="hospitalKey != null and hospitalKey !='' ">
+			and h.hospital_code=#{hospitalKey}
+		</if>
+		<if test="areaKey != null and areaKey !='' ">
+			and h.area_code=#{areaKey}
+		</if>
+			  join dimension_dept dp on dp.dept_key=s.dept_key
+		<if test="deptKey != null and deptKey !='' ">
+			and dp.dept_code=#{deptKey}
+		</if>
+			  join dimension_doctor dc on dc.dimension_doctor_key=s.dimension_doctor_key
+		<if test="physicianKey != null and physicianKey !='' ">
+			and dc.doctor_code=#{physicianKey}
+		</if>
+			  join dimension_patient_type pt on pt.dimension_patient_type=s.dimension_patient_type
+		<if test="patientTypeKey != null and patientTypeKey !='' and patientTypeKey=='OUTPATIENT_URGENT' ">
+			and (pt.patient_type_code='OUTPATIENT' or pt.patient_type_code='URGENT_CARE')
+		</if>
+		<if test="patientTypeKey != null and patientTypeKey !='' and patientTypeKey!='OUTPATIENT_URGENT' ">
+			and pt.patient_type_code=#{patientTypeKey}
+		</if>
+			group by d.drug_code
+		) BASE ,dimension_drug D
+		where d.drug_code=base.drug_code
+			and d.is_current='Y' and now() between d.date_from and d.date_to
+		order by total_price1 desc
+	</select>
+
+	<resultMap type="com.medimpact.medeasy.common.bean.MenuBi" id="menuResultMap2">
+		<id column="MENU_ID" property="menuId" />
+		<result column="MENU_NAME" property="menuName" />
+		<result column="PARENT_ID" property="parentId" />
+		<result column="HAS_SUBMENU" property="hasSubMenu" />
+	</resultMap>
+
+	<!--通过ID获取其子一级菜单 -->
+	<select id="listSubMenuByParentId" parameterType="int" resultMap="menuResultMap2">
+		select category_code as MENU_ID,
+       category_name as MENU_NAME,
+       category_parent_code as PARENT_ID,
+       (select count(1) from drug_category dc where dc.drug_category_type=0 and dc.category_parent_code=drug_category.category_code)>0 as HAS_SUBMENU
+		from drug_category
+		where category_parent_code = #{parentCode}
+			  and drug_category_type=0
+		order by (drug_category_id+0)
+	</select>
+
+	<!--取药品的列表 -->
+	<select id="listAllDrugForTree" resultMap="menuResultMap2">
+		select LOCAL_DRUG_ID as MENU_ID,
+		 CONCAT(LOCAL_DRUG_NAME,'(',LOCAL_DRUG_SPEC,')',MANUFACTURE) as MENU_NAME,
+		 0 as PARENT_ID,
+		 0 as HAS_SUBMENU
+		 from drug
+		 order by LOCAL_DRUG_ID
+	</select>
+
+	<resultMap type="com.medimpact.medeasy.common.bean.bp.DrugUsedBasicInfoBI" id="drugUsedBasicMap">
+		<result column="rx_num" property="rxNum" />
+		<result column="reg_num" property="regNum" />
+		<result column="drug_variety_avg" property="avgDrugVariety" />
+		<result column="avg_rx_price_amount" property="avgRxPriceAmount" />
+		<result column="drug_price_amount" property="drugPriceAmount" />
+		<result column="avg_drug_price_amount" property="avgDrugPriceAmount" />
+	</resultMap>
+
+	<select id="getDrugUsedBasicInfo"  parameterType="com.medimpact.medeasy.common.bean.bp.DrugUsedBasicInfoBI" resultMap="drugUsedBasicMap">
+		select sum(reg_num) reg_num
+		,sum(rx_num) rx_num
+		,cast(sum(drug_variety)/sum(reg_num) as decimal(20,2)) drug_variety_avg
+		,FORMAT(cast(sum(total_rx_price_amount)/sum(rx_num) as decimal(20,4)),2) avg_rx_price_amount
+		,FORMAT(sum(total_drug_price_amount),2) drug_price_amount
+		,FORMAT(cast(sum(total_drug_price_amount)/sum(reg_num) as decimal(20,4)),2) avg_drug_price_amount
+		 from (
+			select * from subject_drug_used_basic_info_1111
+			where ym BETWEEN #{startDate} and #{endDate}
+		) base
+		<if test="areaKey != null and areaKey !='' ">
+			,dimension_hospital h
+			where h.dimension_hospital_key=base.dimension_hospital_key
+			and h.area_code=#{areaKey}
+		</if>
+		<if test="hospitalKey != null and hospitalKey !='' ">
+			and h.hospital_code=#{hospitalKey}
+		</if>
+	</select>
+
+</mapper>  

@@ -1,0 +1,31 @@
+package com.medimpact.medeasy.common.form;
+
+import com.medimpact.medeasy.common.RequestParameter;
+
+public class RoleMenuAuthForm {
+	private String roleName;
+	private String description;
+	private String menuAuth;
+	public RoleMenuAuthForm() {
+		super();
+	}
+	public String getRoleName() {
+		return roleName;
+	}
+	public void setRoleName(String roleName) {
+		this.roleName = roleName;
+	}
+	public String getDescription() {
+		return description;
+	}
+	public void setDescription(String description) {
+		this.description = description;
+	}
+	public String getMenuAuth() {
+		return menuAuth;
+	}
+	public void setMenuAuth(String menuAuth) {
+		this.menuAuth = menuAuth;
+	}
+
+}

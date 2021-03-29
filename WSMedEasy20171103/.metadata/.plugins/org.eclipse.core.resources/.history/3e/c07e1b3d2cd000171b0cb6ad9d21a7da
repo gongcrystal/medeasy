@@ -1,0 +1,11 @@
+package com.medimpact.medeasy.dao.menu;
+
+import java.util.List;
+
+import com.medimpact.medeasy.common.DataModel;
+import com.medimpact.medeasy.common.bean.RoleMenuBi;
+import com.medimpact.medeasy.dao.CommonDao;
+
+public interface RoleMenuDao extends CommonDao<RoleMenuBi>{	
+	public void insertBatch((@Param("theCollection") List<RoleMenuBi> list);
+}

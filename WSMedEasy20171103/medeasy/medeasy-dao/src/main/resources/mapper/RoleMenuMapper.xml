@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC   
+    "-//mybatis.org//DTD Mapper 3.0//EN"  
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.medimpact.medeasy.dao.menu.RoleMenuDao">
+	<resultMap type="com.medimpact.medeasy.common.bean.RoleMenuBi"
+		id="resultMap">
+		<id column="id" property="id" />
+		<result column="role_name" property="roleName" />
+		<result column="menu_name" property="menuName" />
+		<result column="menu_id" property="menuId" />
+		<result column="description" property="description" />
+		
+		<association property="dtOpLevelBi" javaType="com.medimpact.medeasy.common.bean.DtOpLevelBi">
+		<!-- 	<result property="id" column="id" /> -->
+			<result property="opName" column="op_name" />
+			<result property="operateLevel" column="operate_level" />
+		</association>
+	</resultMap>
+	
+	
+
+	<insert id="insertBatch" parameterType="java.util.List">
+		INSERT INTO role_menu(role_name,menu_id,menu_name,description) values
+		<foreach collection="rolelist" item="element" index="index"
+			open="(" separator="),(" close=")">
+			#{element.roleName},
+			#{element.menuId},
+			#{element.menuName},
+			#{element.description}
+		</foreach>
+	</insert>
+
+	<select id="getRoleMenuByName" parameterType="String" resultMap="resultMap">
+		SELECT * FROM role_menu where role_name=#{roleName} AND menu_name!="首页"
+	</select>
+
+	<select id="getRoleMenus" parameterType="com.medimpact.medeasy.common.form.SearchForm" resultMap="resultMap">
+		SELECT * FROM role_menu rm , tb_role tbr, dt_op_level l
+		WHERE l.operate_level=tbr.operate_level AND rm.role_name = tbr.role_name
+		AND rm.menu_name!="首页"
+		
+	</select>	
+	
+	 <delete id="delByName" parameterType="string">
+        DELETE FROM role_menu WHERE role_name = #{roleName} AND menu_name!="首页"
+    </delete>
+    
+    <select id="getRoleNamesByUrl" parameterType="string"  resultType="string">  
+		<!-- SELECT rm.* FROM role_module rm, module m where m.id=rm.id and m.url=#{url}; -->	
+		select rm.role_name from sys_menu m, role_menu rm where m.menu_id=rm.menu_id and m.menu_url=#{url};
+	</select>  		
+
+</mapper>

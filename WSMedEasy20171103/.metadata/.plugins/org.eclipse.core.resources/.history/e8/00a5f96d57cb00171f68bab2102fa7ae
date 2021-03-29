@@ -1,0 +1,105 @@
+$(function() {
+	$.genMenu(0); /* 默认调用一级菜单 */
+
+});
+
+$.genMenu = function(parentId) {
+	$.ajax({
+		"url" : '/medeasy-web/sys/listMenus',
+		"type" : 'POST',
+		"dataType" : 'json',
+		"timeout" : 20000,
+		data : {
+			parentId : parentId
+		},
+		success : function(data) {
+			$.each(data, function(index, element) {
+
+				$("#menu_ul").genMenu(element);
+			});
+		}
+	});
+};
+
+/* 一级菜单的,产生所有下面无限极的子菜单 */
+jQuery.fn.genMenu = function(element) {
+	/* menuIcon 的格式fa-desktop blue */
+	var icons = element.menuIcon.split(" ");
+	var iconStr = "";
+
+	for (var i = 0; i < icons.length; i++) {
+		iconStr = iconStr + " " + icons[i];
+	}
+
+	var mmenu = "<li class=\"\"> <a href=" + element.menuUrl;
+
+	if (element.hasSubMenu == true) { /* 判断是否有子菜单 */
+		mmenu += " class=\"dropdown-toggle\"";
+	}
+	mmenu += "><i class= \"menu-icon fa " + iconStr + "\"></i>" + "<span class=\"menu-text\">" + element.menuName + "</span>";
+
+	if (element.hasSubMenu == true) { /* 判断是否有子菜单 */
+		mmenu += "<b class=\"arrow fa fa-angle-down\"></b>"
+	}
+	mmenu += "</a><b class=\"arrow\"></b>" /* 结束对一级菜单的生成 */
+
+	if (element.hasSubMenu == true) {
+		var l2Menu = element.subMenu;
+		var l2MenuJson = JSON.stringify(l2Menu);
+		/* console.log(l2Menu); */
+		/* console.log(l2MenuJson); */
+		$.each(l2Menu, function(property, value) {
+			console.log(value.menuName);
+			$.genSubMenu(value);
+			console.log(value.id);
+		});
+	}
+
+	mmenu += "</li>";
+	$(this).append(mmenu);
+};
+
+/* e是二级菜单元素 */
+$.extend({
+	'genSubMenu' : function(e) {
+		var menuStr = "";
+
+		if (e.menuOrder == 1) {
+			menuStr += "<ul class=\"submenu\">";
+		}
+		menuStr += "<li class=\"\"><a href=";
+
+		if (e.hasSubMenu == true) { /* 判断是否有子菜单 */
+			menuStr += " class=\"dropdown-toggle\"";
+		}
+		menuStr += "><i class=\"menu-icon fa fa-caret-right\"></i> " + e.menuName;
+
+		if (e.hasSubMenu == true) { /* 判断是否有子菜单 */
+			menuStr += "<b class=\"arrow fa fa-angle-down\"></b>";
+		}
+		menuStr += "</a><b class=\"arrow\"></b>"; /* 结束对一级菜单的生成 */
+
+		if (e.hasSubMenu == true) {
+			$.each(e.subMenu, function(index, element) {
+				console.log(element.menuName);
+				$.genSubMenu(element);
+			});
+		}
+
+		menuStr += "</li>";
+		$(this).append(menuStr);
+	}
+});
+
+/* 当点击菜单的时候，生成tab,和相应的tab事件 */
+/*
+ * $.genTab = function(menuCode,menuName){ var tabId="t_"+menuCode; var
+ * tabContentId = "tc_"+menuCode;
+ * 
+ * var mTab = "<li"+" id="+tabId+"> <a href="+tabContentId+"
+ * data-toggle=\"tab\">"+menuName+"</a></li>"; navTab.append(mTab);
+ * 
+ * $("#"+tabId).bind("click",function(){ 点击tab的时候，只显示自己对应的tabcontent, 其他的都隐藏
+ * 
+ * }); };
+ */

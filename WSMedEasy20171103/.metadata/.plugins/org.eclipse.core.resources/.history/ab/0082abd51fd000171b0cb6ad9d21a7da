@@ -1,0 +1,17 @@
+package com.medimpact.medeasy.service.menu;
+
+import org.springframework.stereotype.Service;
+
+import com.medimpact.medeasy.common.DataModel;
+import com.medimpact.medeasy.common.form.RoleMenuForm;
+
+@Service
+public class RoleMenuServiceImpl implements RoleMenuService {
+
+	@Override
+	public DataModel addRoleMenu(RoleMenuForm form) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+}

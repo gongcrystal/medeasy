@@ -1,0 +1,331 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC   
+    "-//mybatis.org//DTD Mapper 3.0//EN"  
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.medimpact.medeasy.dao.bp.rdustatistics.RduStatisticsDao">
+
+	<!-- <cache type="org.mybatis.caches.ehcache.EhcacheCache" /> -->
+	<resultMap id="rduStatisticsDataMap" type="com.medimpact.medeasy.common.bean.bp.RduStatisticsBi">
+		<result property="hospitalCode" column="hospitalcode" />
+		<result property="hospitalName" column="hospitalname" />
+		<result property="areaName" column="areaname" />
+		<result property="alertTypeName" column="eventname" />
+		<result property="rxCount" column="rxCount" />
+		<result property="amount" column="amount" />
+		<result property="alertLevel1Count" column="alertLevel1Count" />
+		<result property="alertLevel2Count" column="alertLevel2Count" />
+		<result property="alertLevel3Count" column="alertLevel3Count" />
+		<result property="alertLevel4Count" column="alertLevel4Count" />
+		<result property="alertTotalCount" column="alertTotalCount" />
+		<result property="alertPercentage" column="alertPercentage" />
+		<result property="alertTypeCount" column="alertTypeCount" />
+		<result property="drugCount" column="drugCount" />
+		<result property="areaCount" column="areaCount" />
+		<result property="hospitalCount" column="hospitalCount" />
+		<result property="deptCount" column="deptCount" />
+		<result property="doctorCount" column="doctorCount" />
+	</resultMap>
+
+	<select id="getRduStatisticsByHospital" parameterType="com.medimpact.medeasy.common.bean.bp.RduStatisticsBi" resultMap="rduStatisticsDataMap">
+		SELECT dh.hospital_name as hospitalname,dh.area_name as areaname,base.*,ROUND(base.erxdrugcount/rxdrugcount.rxdcounts*100,2) alertPercentage,hamount.amount FROM
+		(
+		SELECT	hospital.hospital_code as hospitalcode,
+				COUNT(DISTINCT rduAna.rx_code) rxCount,
+				SUM(IF(rduAna.dur_level=1,1,0)) alertLevel1Count,
+				SUM(IF(rduAna.dur_level=2,1,0)) alertLevel2Count,
+				SUM(IF(rduAna.dur_level=3,1,0)) alertLevel3Count,
+				SUM(IF(rduAna.dur_level=4,1,0)) alertLevel4Count,
+				COUNT(rduAna.dur_level) alertTotalCount,
+				count(DISTINCT concat(rx_code,':',rduAna.dimesion_drug_key)) erxdrugcount,
+				COUNT(DISTINCT event.event_code) alertTypeCount,
+				COUNT(DISTINCT drug.drug_code) drugCount,
+				COUNT(DISTINCT dept.dept_code) deptCount,
+				COUNT(DISTINCT doctor.doctor_code) doctorCount
+		FROM subject_rdu_analysis_2111 rduAna
+		JOIN dimension_doctor doctor ON rduAna.dimension_doctor_key = doctor.dimension_doctor_key
+		JOIN dimension_dept dept ON rduAna.dept_key = dept.dept_key
+		JOIN dimension_drug drug ON rduAna.dimesion_drug_key = drug.dimesion_drug_key
+		JOIN dimension_hospital hospital ON rduAna.dimension_hospital_key = hospital.dimension_hospital_key
+		JOIN dimension_patient_type patientType ON rduAna.dimension_patient_type = patientType.dimension_patient_type
+		JOIN dimension_patient patient ON rduAna.dimension_patient_key = patient.dimension_patient_key
+		JOIN dimension_calander calander ON rduAna.dimension_calander_key = calander.dimension_calander_key
+		JOIN dimension_event_code event ON rduAna.dimension_event_code_key = event.dimension_event_code_key and event.event_name is not NULL
+		<include refid="drugCon"></include>
+		WHERE 1 = 1
+		<include refid="operateCon"></include>
+		<include refid="serCondition"></include>
+		GROUP BY hospital.hospital_code
+		)base
+		JOIN dimension_hospital dh ON base.hospitalcode = dh.hospital_code AND dh.is_current = 'Y'
+		left join (
+					SELECT hospital_code,sum(rxdCount) rxdcounts
+					from (
+						SELECT hospital_code,RA.rx_code,count(distinct ra.dimesion_drug_key) rxdCount
+								,count( distinct case when `event`.event_name is null then null else ra.dimesion_drug_key end) rxdECount
+						FROM subject_rdu_analysis_2111 ra
+						join dimension_calander calander on calander.dimension_calander_key=ra.dimension_calander_key
+						left JOIN dimension_event_code event ON ra.dimension_event_code_key = event.dimension_event_code_key
+						join dimension_hospital hospital on hospital.dimension_hospital_key=ra.dimension_hospital_key
+						JOIN dimension_patient_type patientType on ra.dimension_patient_type=patientType.dimension_patient_type
+						<if test="startDate!=null and startDate.trim()!=''">
+							<![CDATA[AND date_format(calander.full_day,'%Y-%m') >= #{startDate}]]>
+						</if>
+						<if test="endDate!=null and endDate.trim()!=''">
+							<![CDATA[AND date_format(calander.full_day,'%Y-%m') <= #{endDate}]]>
+						</if>
+						<if test="patientTypeKey != null and patientTypeKey.trim() !='' and patientTypeKey=='OUTPATIENT_URGENT' ">
+							and (patientType.patient_type_code='OUTPATIENT' or patientType.patient_type_code='URGENT_CARE')
+						</if>
+						<if test="patientTypeKey != null and patientTypeKey.trim() !='' and patientTypeKey!='OUTPATIENT_URGENT' ">
+							and patientType.patient_type_code=#{patientTypeKey}
+						</if>
+						group by hospital_code,RA.rx_code
+					) forEPercent
+					group by hospital_code
+		) rxdrugcount on rxdrugcount.hospital_code=base.hospitalcode
+		left join (
+			SELECT
+			a.hospital_code,SUM(a.amount) amount
+			FROM(
+			SELECT
+			hospital.hospital_code,rduAna.rx_code,drug.drug_code,rduAna.amount
+			FROM
+			subject_rdu_analysis_2111 rduAna
+			JOIN dimension_doctor doctor ON rduAna.dimension_doctor_key = doctor.dimension_doctor_key
+			JOIN dimension_dept dept ON rduAna.dept_key = dept.dept_key
+			JOIN dimension_drug drug ON rduAna.dimesion_drug_key = drug.dimesion_drug_key
+			JOIN dimension_hospital hospital ON rduAna.dimension_hospital_key = hospital.dimension_hospital_key
+			JOIN dimension_patient_type patientType ON rduAna.dimension_patient_type = patientType.dimension_patient_type
+			JOIN dimension_calander calander ON rduAna.dimension_calander_key = calander.dimension_calander_key
+			JOIN dimension_event_code event ON rduAna.dimension_event_code_key = event.dimension_event_code_key
+			and event.event_name is not NULL
+			<include refid="drugCon"></include>
+			WHERE 1 = 1
+			<include refid="operateCon"></include>
+			<include refid="serCondition"></include>
+			GROUP BY rduAna.rx_code,drug.drug_code
+			)a GROUP BY a.hospital_code
+		) hamount on hamount.hospital_code=base.hospitalcode
+		<if test="sidx != null and sidx != ''">
+			order by ${sidx} ${sord}
+		</if>
+		<if test="sidx == null or sidx.trim() == ''">
+			order by base.alertTotalCount DESC
+		</if>
+		<if test="rowStart!=null and rowSize!=null">
+			limit #{rowStart},#{rowSize}
+		</if>
+	</select>
+	
+	<select id="getAmountByHospital" parameterType="com.medimpact.medeasy.common.bean.bp.RduStatisticsBi" resultMap="rduStatisticsDataMap">
+		SELECT 
+			a.hospital_code,SUM(a.amount) amount
+		FROM(
+			SELECT 
+				hospital.hospital_code,rduAna.rx_code,drug.drug_code,rduAna.amount 
+			FROM
+				subject_rdu_analysis_2111 rduAna
+			JOIN dimension_doctor doctor ON rduAna.dimension_doctor_key = doctor.dimension_doctor_key
+			JOIN dimension_dept dept ON rduAna.dept_key = dept.dept_key
+			JOIN dimension_drug drug ON rduAna.dimesion_drug_key = drug.dimesion_drug_key
+			JOIN dimension_hospital hospital ON rduAna.dimension_hospital_key = hospital.dimension_hospital_key
+			JOIN dimension_patient_type patientType ON rduAna.dimension_patient_type = patientType.dimension_patient_type
+			JOIN dimension_calander calander ON rduAna.dimension_calander_key = calander.dimension_calander_key
+			JOIN dimension_event_code event ON rduAna.dimension_event_code_key = event.dimension_event_code_key
+				and event.event_name is not NULL
+			<include refid="drugCon"></include>
+			WHERE 1 = 1
+			<include refid="operateCon"></include>
+			<include refid="serCondition"></include>
+			GROUP BY rduAna.rx_code,drug.drug_code
+		)a GROUP BY a.hospital_code
+	</select>
+	
+	<select id="getCountByHospital" parameterType="com.medimpact.medeasy.common.bean.bp.RduStatisticsBi" resultType="long">
+		SELECT 
+			COUNT(1) 
+		FROM(
+			SELECT 
+				rduAna.*
+			FROM
+				subject_rdu_analysis_2111 rduAna
+			JOIN dimension_event_code event ON rduAna.dimension_event_code_key = event.dimension_event_code_key and event.event_name is not NULL
+			JOIN dimension_drug drug ON rduAna.dimesion_drug_key = drug.dimesion_drug_key
+			JOIN dimension_dept dept ON rduAna.dept_key = dept.dept_key
+			JOIN dimension_hospital hospital ON rduAna.dimension_hospital_key = hospital.dimension_hospital_key
+			JOIN dimension_patient_type patientType ON rduAna.dimension_patient_type = patientType.dimension_patient_type
+			JOIN dimension_calander calander ON rduAna.dimension_calander_key = calander.dimension_calander_key
+			<include refid="drugCon"></include>
+			<include refid="operateCon"></include>
+			<include refid="serCondition"></include>
+			GROUP BY hospital.hospital_code
+		)a
+	</select>
+
+	<select id="getRduStatisticsByAlert" parameterType="com.medimpact.medeasy.common.bean.bp.RduStatisticsBi" resultMap="rduStatisticsDataMap">
+		SELECT
+			de.event_name,base.*,ROUND(base.erxdrugcount/rxdrugcount.rxdcounts*100,2) alertPercentage,rxdrugAmount.amount FROM
+			(
+				SELECT
+					event.event_code,
+					COUNT(DISTINCT rduAna.rx_code) rxCount,
+					-- SUM(rduAna.amount) amount,
+					SUM(IF(rduAna.dur_level=1,1,0)) alertLevel1Count,
+					SUM(IF(rduAna.dur_level=2,1,0)) alertLevel2Count,
+					SUM(IF(rduAna.dur_level=3,1,0)) alertLevel3Count,
+					SUM(IF(rduAna.dur_level=4,1,0)) alertLevel4Count,
+					COUNT(rduAna.dur_level) alertTotalCount,					
+					-- ROUND(COUNT(DISTINCT a.rx_code)/COUNT(DISTINCT rduAna.rx_code)*100,2) alertPercentage,
+					count(DISTINCT concat(rx_code,':',rduAna.dimesion_drug_key)) erxdrugcount,
+					COUNT(DISTINCT event.event_code) alertTypeCount,
+					COUNT(DISTINCT drug.drug_code) drugCount,
+					COUNT(DISTINCT dept.dept_code) deptCount,
+					COUNT(DISTINCT doctor.doctor_code) doctorCount,
+					COUNT(DISTINCT hospital.hospital_code) hospitalCount,
+					COUNT(DISTINCT hospital.area_code) areaCount
+				FROM
+					subject_rdu_analysis_2111 rduAna
+				JOIN dimension_doctor doctor ON rduAna.dimension_doctor_key = doctor.dimension_doctor_key
+				JOIN dimension_dept dept ON rduAna.dept_key = dept.dept_key
+				JOIN dimension_drug drug ON rduAna.dimesion_drug_key = drug.dimesion_drug_key
+				JOIN dimension_hospital hospital ON rduAna.dimension_hospital_key = hospital.dimension_hospital_key
+				JOIN dimension_patient_type patientType ON rduAna.dimension_patient_type = patientType.dimension_patient_type
+				JOIN dimension_patient patient ON rduAna.dimension_patient_key = patient.dimension_patient_key
+				JOIN dimension_calander calander ON rduAna.dimension_calander_key = calander.dimension_calander_key
+				JOIN dimension_event_code event ON rduAna.dimension_event_code_key = event.dimension_event_code_key and event.event_name is not NULL
+				<include refid="drugCon"></include>
+				WHERE 1 = 1
+				<include refid="operateCon"></include>
+				<include refid="serCondition"></include>
+				GROUP BY event.event_code
+			)base
+			join ( -- 计算报警相关的医嘱金额
+				SELECT event_code,sum(amount) amount
+				from (
+						SELECT event.event_code,hospital_code,RA.rx_code,ra.dimesion_drug_key,amount
+						FROM subject_rdu_analysis_2111 ra
+						join dimension_calander calander on calander.dimension_calander_key=ra.dimension_calander_key
+						JOIN dimension_event_code event ON ra.dimension_event_code_key = event.dimension_event_code_key and event_name is not null
+						join dimension_hospital hospital on hospital.dimension_hospital_key=ra.dimension_hospital_key
+						JOIN dimension_patient_type patientType on ra.dimension_patient_type=patientType.dimension_patient_type
+						<if test="startDate!=null and startDate.trim()!=''">
+							<![CDATA[AND date_format(calander.full_day,'%Y-%m') >= #{startDate}]]>
+						</if>
+						<if test="endDate!=null and endDate.trim()!=''">
+							<![CDATA[AND date_format(calander.full_day,'%Y-%m') <= #{endDate}]]>
+						</if>
+						<if test="patientTypeKey != null and patientTypeKey.trim() !='' and patientTypeKey=='OUTPATIENT_URGENT' ">
+							and (patientType.patient_type_code='OUTPATIENT' or patientType.patient_type_code='URGENT_CARE')
+						</if>
+						<if test="patientTypeKey != null and patientTypeKey.trim() !='' and patientTypeKey!='OUTPATIENT_URGENT' ">
+							and patientType.patient_type_code=#{patientTypeKey}
+						</if>
+						group by event.event_code,hospital_code,RA.rx_code,ra.dimesion_drug_key
+				) forEPercent group by event_code
+		) rxdrugAmount on rxdrugAmount.event_code=base.event_code
+		JOIN dimension_event_code de
+			ON base.event_code = de.event_code AND de.is_current = 'Y'
+		left join (
+					SELECT sum(rxdCount) rxdcounts
+					from (
+							SELECT hospital_code,RA.rx_code,count(distinct ra.dimesion_drug_key) rxdCount,count( distinct case when `event`.event_name is null then null else ra.dimesion_drug_key end) rxdECount
+							FROM subject_rdu_analysis_2111 ra
+							join dimension_calander calander on calander.dimension_calander_key=ra.dimension_calander_key
+							left JOIN dimension_event_code event ON ra.dimension_event_code_key = event.dimension_event_code_key
+							join dimension_hospital hospital on hospital.dimension_hospital_key=ra.dimension_hospital_key
+							JOIN dimension_patient_type patientType on ra.dimension_patient_type=patientType.dimension_patient_type
+							<if test="startDate!=null and startDate.trim()!=''">
+								<![CDATA[AND date_format(calander.full_day,'%Y-%m') >= #{startDate}]]>
+							</if>
+							<if test="endDate!=null and endDate.trim()!=''">
+								<![CDATA[AND date_format(calander.full_day,'%Y-%m') <= #{endDate}]]>
+							</if>
+							<if test="patientTypeKey != null and patientTypeKey.trim() !='' and patientTypeKey=='OUTPATIENT_URGENT' ">
+								and (patientType.patient_type_code='OUTPATIENT' or patientType.patient_type_code='URGENT_CARE')
+							</if>
+							<if test="patientTypeKey != null and patientTypeKey.trim() !='' and patientTypeKey!='OUTPATIENT_URGENT' ">
+								and patientType.patient_type_code=#{patientTypeKey}
+							</if>
+							group by hospital_code,RA.rx_code
+						) forEPercent
+		) rxdrugcount
+	</select>
+	
+	<select id="getCountByAlert" parameterType="com.medimpact.medeasy.common.bean.bp.RduStatisticsBi" resultType="long">
+		SELECT 
+			COUNT(1) 
+		FROM(
+			SELECT 
+				rduAna.*
+			FROM
+				subject_rdu_analysis_2111 rduAna
+			JOIN dimension_event_code event ON rduAna.dimension_event_code_key = event.dimension_event_code_key and event.event_name is not NULL
+			JOIN dimension_drug drug ON rduAna.dimesion_drug_key = drug.dimesion_drug_key
+			JOIN dimension_dept dept ON rduAna.dept_key = dept.dept_key
+			JOIN dimension_hospital hospital ON rduAna.dimension_hospital_key = hospital.dimension_hospital_key
+			JOIN dimension_patient_type patientType ON rduAna.dimension_patient_type = patientType.dimension_patient_type
+			JOIN dimension_calander calander ON rduAna.dimension_calander_key = calander.dimension_calander_key
+			<include refid="drugCon"></include>
+			<include refid="operateCon"></include>
+			<include refid="serCondition"></include>
+			GROUP BY event.event_code
+		)a
+	</select>
+	
+	<sql id="serCondition">
+		<if test="startDate!=null and startDate.trim()!=''">
+			<![CDATA[AND date_format(calander.full_day,'%Y-%m') >= #{startDate}]]>
+		</if>
+		<if test="endDate!=null and endDate.trim()!=''">
+			<![CDATA[AND date_format(calander.full_day,'%Y-%m') <= #{endDate}]]>
+		</if>
+		<if test="patientTypeKey != null and patientTypeKey.trim() !='' and patientTypeKey=='OUTPATIENT_URGENT' ">
+			and (patientType.patient_type_code='OUTPATIENT' or patientType.patient_type_code='URGENT_CARE')
+		</if>
+		<if test="patientTypeKey != null and patientTypeKey.trim() !='' and patientTypeKey!='OUTPATIENT_URGENT' ">
+			and patientType.patient_type_code=#{patientTypeKey}
+		</if>
+		<if test="alertTypeKey!=null and alertTypeKey.trim()!=''">
+			AND event.event_code = #{alertTypeKey}
+		</if>
+		<if test="durLevel!=null">
+			AND rduAna.dur_level = #{durLevel}
+		</if>
+	</sql>
+	
+	<sql id="operateCon">
+		<if test="operateLevel==2">
+			AND hospital.area_code = #{secUser.areaCode}
+		</if>
+		<if test="operateLevel==3">
+			AND hospital.area_code = #{secUser.areaCode}
+			AND hospital.hospital_code=#{secUser.hospitalCode}
+		</if>
+		<if test="operateLevel==6">
+			AND hospital.area_code = #{secUser.areaCode}
+			AND hospital.hospital_code=#{secUser.hospitalCode}
+			AND doctor.doctor_code = #{secUser.doctorCode}
+		</if>
+	</sql>
+	
+	<sql id="drugCon">
+		<if test="drugClassBtndrugid!=null and drugClassBtndrugid.trim()!=''">
+			JOIN (
+				SELECT drug_code FROM dimension_drug WHERE FIND_IN_SET(drug_code,#{drugClassBtndrugid}) > 0
+			)selDrug ON drug.drug_code = selDrug.drug_code
+		</if>
+		<if test="drugClassBtndrugcategoryid!=null and drugClassBtndrugcategoryid.trim()!=''">
+			JOIN(
+				SELECT
+					DISTINCT dd.LOCAL_DRUG_ID
+				FROM 
+					drug_category dc,drug_category_mapping dm,drug dd
+				WHERE dc.drug_category_id = dm.drug_category_id
+				AND dd.DRUG_ID = dm.DRUG_ID
+				and dc.drug_category_type=0
+				AND FIND_IN_SET(category_code,#{drugClassBtndrugcategoryid}) > 0
+			)selDrug ON drug.drug_code = selDrug.LOCAL_DRUG_ID
+		</if>
+	</sql>
+	
+</mapper>  

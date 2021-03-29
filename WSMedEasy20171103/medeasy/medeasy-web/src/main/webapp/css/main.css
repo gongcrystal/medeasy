@@ -1,0 +1,51 @@
+.menu_click {
+	
+}
+.nav-tabs > li.active > a, .nav-tabs > li.active > a:focus, .nav-tabs > li.active > a:hover{
+	/*
+	background-color: #438EB9;
+	 */
+	background-color:#FFFFFF;
+	color: #438EB9;
+	padding:8px;
+	border-top:4px solid #307ECC;/*tab Style*/
+	border-left:1px solid #307ECC;
+	border-right:1px solid #307ECC;
+	
+}
+
+.nav-tabs > li > a {
+    /*padding: 4px 6px 2px;*/
+    margin:0 5px;/*edit tab Style*/
+}
+
+.tab-content {
+    border: 0px;
+    padding: 10px;
+    border-top:4px solid #307ECC;
+    border-left:1px solid #ccc;
+    border-right:1px solid #ccc;
+}
+iframe{
+	margin:0 auto;
+	width:100%;
+	height:100%;
+}
+
+.page-content {  
+    padding: 8px 10px 0px;
+}
+
+.radio{
+	margin-left:5px;
+}
+
+#abxComprehensiveIndexTable tr th{
+	height:30px;
+	padding-left:5px;
+	color:#307ECC !important;
+}
+/* th.ui-th-column div{   */
+/* 	white-space: normal !important;   */
+/* 	height: auto !important;   */
+/* }   */

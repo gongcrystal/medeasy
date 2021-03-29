@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.medimpact.medeasy.dao.security.AuthDao">
+	<!-- <resultMap id="authMap"
+		type="com.medimpact.medeasy.common.bean.security.SecAuth">
+		<result property="id" column="id" />
+		<result property="moduleId" column="module_id" />
+		<result property="roleName" column="role_name" />
+	</resultMap> -->
+
+	<select id="getRoleNamesByUrl" parameterType="string"  resultType="string">  
+		<!-- SELECT rm.* FROM role_module rm, module m where m.id=rm.id and m.url=#{url}; -->	
+		select rm.role_name from module m, role_module rm where m.id=rm.module_id and m.url=#{url};
+	</select>
+</mapper>        

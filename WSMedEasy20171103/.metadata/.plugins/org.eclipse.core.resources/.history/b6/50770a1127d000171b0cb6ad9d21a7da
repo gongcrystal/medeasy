@@ -1,0 +1,13 @@
+package com.medimpact.medeasy.service.menu;
+
+import org.springframework.transaction.annotation.Transactional;
+
+import com.medimpact.medeasy.common.DataModel;
+import com.medimpact.medeasy.common.bean.RoleMenuBi;
+import com.medimpact.medeasy.common.form.RoleMenuForm;
+
+public interface RoleMenuService {
+	
+	@Transactional
+	public void addRoleMenu(RoleMenuForm form);
+}

@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.medimpact.medeasy.dao.hospital.HospitalDao">
+
+	<!-- <cache type="org.mybatis.caches.ehcache.EhcacheCache" /> -->
+	
+	<resultMap id="hospitalMap" type="com.medimpact.medeasy.common.bean.HospitalBi">
+		<id property="id" column="MED_INSTITUTION_ID" />
+		<result property="name" column="MED_INSTITUTION_NAME" />
+		<result property="hospitalCode" column="MED_INSTITUTION_CODE" />
+		<result property="areaId" column="AREA_ID" />
+		<result property="areaCode" column="AREA_code" />
+		<result property="level" column="MED_INSTITUTION_LEVEL_CODE" />
+		<result property="address" column="MED_INSTITUTION_STREET_ADDRESS" />
+		<result property="country" column="MED_INSTITUTION_COUNTRY" />
+		<result property="province" column="MED_INSTITUTION_PROVINCE" />
+		<result property="city" column="MED_INSTITUTION_CITY" />
+		<result property="postCode" column="MED_INSTITUTION_POSTAL_CODE" />
+		<result property="createTime" column="create_time" />
+		<result property="lastUpdateTime" column="last_update_time" />
+		
+	</resultMap>
+	<select id="list" resultMap="hospitalMap" useCache="true">
+		select * from hospital  order by (MED_INSTITUTION_NAME+0)
+	</select> 	 
+	
+	<select id="getHospitalById" parameterType="int"  resultMap="hospitalMap" >
+		select * from hospital h where h.MED_INSTITUTION_ID = #{hospitalId} order by (MED_INSTITUTION_NAME+0)
+	</select>     
+	
+	
+	<select id="getHospitalByAreaId" parameterType="int"  resultMap="hospitalMap" >
+		select * from hospital h where h.AREA_ID = #{distId} order by (MED_INSTITUTION_NAME+0)
+	</select>  
+	
+	<select id="getHospitalByAreaCode" parameterType="string"  resultMap="hospitalMap" >
+		select * from hospital h where h.AREA_code = #{areaCode} order by (MED_INSTITUTION_NAME+0)
+	</select>
+	
+	
+	<select id="getHospitalByCode" parameterType="string"  resultMap="hospitalMap" >
+		select * from hospital h where h.MED_INSTITUTION_CODE = #{hospitalCode} order by (MED_INSTITUTION_NAME+0)
+	</select>
+	
+</mapper>    

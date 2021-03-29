@@ -1,0 +1,5 @@
+package com.medimpact.medeasy.service.security;
+
+public interface RoleService {
+
+}

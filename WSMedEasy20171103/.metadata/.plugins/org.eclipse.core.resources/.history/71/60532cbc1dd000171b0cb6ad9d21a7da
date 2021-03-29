@@ -1,0 +1,9 @@
+package com.medimpact.medeasy.dao.menu;
+
+import com.medimpact.medeasy.common.DataModel;
+import com.medimpact.medeasy.common.bean.RoleMenuBi;
+import com.medimpact.medeasy.dao.CommonDao;
+
+public interface RoleMenuDao extends CommonDao<RoleMenuBi>{s	
+	
+}

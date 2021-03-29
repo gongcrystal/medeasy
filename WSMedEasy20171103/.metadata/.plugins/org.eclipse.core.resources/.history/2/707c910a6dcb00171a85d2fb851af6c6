@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Insert title here</title>
+</head>
+<body>
+	main.js:57
+	<li class="">
+		<a href="# " class="dropdown-toggle">
+			<i class="menu-icon fa  fa-desktop blue"></i><span class="menu-text">系统管理</span><b class="arrow fa fa-angle-down"></b>
+		</a>
+		<b class="arrow"></b>
+		<ul class="submenu">
+			<li class="">
+				<a href=class="dropdown-toggle">
+					<i class="menu-icon fa fa-caret-right"></i> 权限管理<b class="arrow fa fa-angle-down"></b>
+				</a>
+				<b class="arrow"></b>
+			</li>
+			<li class="">
+				<a href=>
+					<i class="menu-icon fa fa-caret-right"></i> 地区管理
+				</a>
+				<b class="arrow"></b>
+			</li>
+			<li class="">
+				<a href=>
+					<i class="menu-icon fa fa-caret-right"></i> 医院管理
+				</a>
+				<b class="arrow"></b>
+			</li>
+			<li class="">
+				<a href=>
+					<i class="menu-icon fa fa-caret-right"></i> 科室管理
+				</a>
+				<b class="arrow"></b>
+			</li>
+			<li class="">
+				<a href=>
+					<i class="menu-icon fa fa-caret-right"></i> 菜单管理
+				</a>
+				<b class="arrow"></b>
+			</li>
+		</ul>
+	</li>
+	main.js:57
+	<li class="">
+		<a href="b" class="dropdown-toggle">
+			<i class="menu-icon fa  fa-lock black"></i><span class="menu-text">总体情况分析</span><b class="arrow fa fa-angle-down"></b>
+		</a>
+		<b class="arrow"></b>
+		<ul class="submenu">
+			<li class="">
+				<a href=>
+					<i class="menu-icon fa fa-caret-right"></i> 管理首页
+				</a>
+				<b class="arrow"></b>
+			</li>
+			<li class="">
+				<a href=>
+					<i class="menu-icon fa fa-caret-right"></i> 药品使用异动分析
+				</a>
+				<b class="arrow"></b>
+			</li>
+			<li class="">
+				<a href=>
+					<i class="menu-icon fa fa-caret-right"></i> 药品使用情况统计
+				</a>
+				<b class="arrow"></b>
+			</li>
+		</ul>
+	</li>
+
+</body>
+</html>

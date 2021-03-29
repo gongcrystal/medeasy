@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Insert title here</title>
+</head>
+<body>
+	main.js:93
+	<li class=" id=menuSysMng > <a href=" # "  class="dropdown-toggle">
+		<i class="menu-icon fa  fa-desktop blue"></i><span class="menu-text">系统管理</span><b class="arrow fa fa-angle-down"></b>
+		</a>
+		<b class="arrow"></b>
+		<ul class="submenu">
+			<li class="" id=menuAuthMng>
+				<a href="# " class="dropdown-toggle">
+					<i class="menu-icon fa  fa-lock black"></i><span class="menu-text">权限管理</span><b class="arrow fa fa-angle-down"></b>
+				</a>
+				<b class="arrow"></b>
+				<ul class="submenu">
+					<li class="menu_click" id=menuRoleMng>
+						<a href="# ">
+							<i class="menu-icon fa  fa-key orange"></i><span class="menu-text">角色管理</span>
+						</a>
+						<b class="arrow"></b>
+					</li>
+					<li class="" id=menuUserMng>
+						<a href="# ">
+							<i class="menu-icon fa  fa-users green"></i><span class="menu-text">用户管理</span>
+						</a>
+						<b class="arrow"></b>
+					</li>
+			</li>
+		</ul>
+	</li>
+	<li class="" id=menuDistMng>
+		<a href="# ">
+			<i class="menu-icon fa  fa-caret-right blue"></i><span class="menu-text">地区管理</span>
+		</a>
+		<b class="arrow"></b>
+	</li>
+	<li class="" id=menuHospitalMng>
+		<a href="# ">
+			<i class="menu-icon fa  fa-caret-right blue"></i><span class="menu-text">医院管理</span>
+		</a>
+		<b class="arrow"></b>
+	</li>
+	<li class="" id=menuDeptMng>
+		<a href="# ">
+			<i class="menu-icon fa  fa-caret-right blue"></i><span class="menu-text">科室管理</span>
+		</a>
+		<b class="arrow"></b>
+	</li>
+	<li class="" id=menuMenuMng>
+		<a href="# ">
+			<i class="menu-icon fa  fa-caret-right blue"></i><span class="menu-text">菜单管理</span>
+		</a>
+		<b class="arrow"></b>
+	</li>
+	</ul>
+	</li>
+	main.js:93
+	<li class="menu_click" id=menuOverview>
+		<a href="# " class="dropdown-toggle">
+			<i class="menu-icon fa  fa-credit-card green"></i><span class="menu-text">总体情况分析</span><b class="arrow fa fa-angle-down"></b>
+		</a>
+		<b class="arrow"></b>
+		<ul class="submenu">
+			<li class="menu_click" id=menuHomePage>
+				<a href="# ">
+					<i class="menu-icon fa  fa-caret-right blue"></i><span class="menu-text">管理首页</span>
+				</a>
+				<b class="arrow"></b>
+			</li>
+			<li class="" id=menuDrugApplyAbnormal>
+				<a href="# ">
+					<i class="menu-icon fa  fa-caret-right blue"></i><span class="menu-text">药品使用异动分析</span>
+				</a>
+				<b class="arrow"></b>
+			</li>
+			<li class="" id=menuDrugApplySt>
+				<a href="# ">
+					<i class="menu-icon fa  fa-caret-right blue"></i><span class="menu-text">药品使用情况统计</span>
+				</a>
+				<b class="arrow"></b>
+			</li>
+		</ul>
+	</li>
+</body>
+</html>

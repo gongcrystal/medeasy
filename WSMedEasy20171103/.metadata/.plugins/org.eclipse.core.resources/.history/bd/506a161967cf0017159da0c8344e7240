@@ -1,0 +1,64 @@
+package com.medimpact.medeasy.web.role;
+
+import java.awt.Menu;
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.annotation.Resource;
+
+import org.springframework.http.MediaType;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import com.medimpact.medeasy.common.bean.MenuBi;
+import com.medimpact.medeasy.common.vo.ZTreeNodeVo;
+import com.medimpact.medeasy.service.menu.MenuService;
+
+@Controller
+@RequestMapping("/role")
+public class RoleCtrl {
+	@Resource
+	private MenuService menuService;
+	
+	@RequestMapping(value = "/listNodes", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+	@ResponseBody
+	public List<ZTreeNodeVo> listNodes(@RequestParam("parentId") Integer parentId){
+		
+		List<MenuBi> list  =  menuService.listAllMenu(parentId);
+		List<ZTreeNodeVo> nodes =  new ArrayList<>();
+		
+		this.recuisiveCpy(list, nodes);
+		
+		return nodes ; 
+	}
+	
+
+	
+	public void singleCpy(MenuBi mBi,ZTreeNodeVo node){
+		if(mBi !=null && node !=null){		
+			node.setId(mBi.getMenuId());
+			node.setName(mBi.getMenuName());
+			node.setPid(mBi.getParentId());
+			node.setParent(mBi.isHasSubMenu());	
+		}
+	}
+
+	public void recuisiveCpy(MenuBi mBi,List<ZTreeNodeVo> nodes){
+	
+		if(mBi !=null && nodes !=null){
+			ZTreeNodeVo node = new ZTreeNodeVo();
+			this.singleCpy(mBi, node);
+			
+			if(mBi.isHasSubMenu()){
+				List<MenuBi> subMenuBis  =  mBi.getSubMenu();
+				for(MenuBi mBi2: subMenuBis){
+					recuisiveCpy(mBi2, nodes);
+				}				
+			}			
+		}
+	}
+
+}

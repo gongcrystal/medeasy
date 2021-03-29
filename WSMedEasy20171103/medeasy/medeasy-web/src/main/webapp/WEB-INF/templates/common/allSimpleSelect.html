@@ -1,0 +1,243 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1"></meta>
+    <meta charset="utf-8"></meta>
+    <meta name="_csrf" content="${_csrf.token}"></meta>
+    <meta name="_csrf_header" content="${_csrf.headerName}"></meta>
+    <meta name="description" content="overview &amp; stats"></meta>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"></meta>
+    <title>主页</title>
+    <link rel="stylesheet" href="../../../plugins/ace/css/bootstrap.min.css" th:href="@{/plugins/ace/css/bootstrap.min.css}"></link>
+    <link rel="stylesheet" href="../../../plugins/ace/font-awesome/4.5.0/css/font-awesome.min.css" th:href="@{/plugins/ace/font-awesome/4.5.0/css/font-awesome.min.css}"></link>
+    <link rel="stylesheet" href="../../../plugins/ace/css/jquery-ui.min.css" th:href="@{/plugins/ace/css/jquery-ui.min.css}"></link>
+
+    <link rel="stylesheet" href="../../../plugins/ace/css/chosen.min.css" th:href="@{/plugins/ace/css/chosen.min.css}"></link>
+
+    <link rel="stylesheet" href="../../../plugins/ace/css/bootstrap-datepicker3.min.css" th:href="@{/plugins/ace/css/bootstrap-datepicker3.min.css}"></link>
+    <link rel="stylesheet" href="../../../plugins/ace/css/ui.jqgrid.min.css" th:href="@{/plugins/ace/css/ui.jqgrid.min.css}"></link>
+    <link rel="stylesheet" href="../../../plugins/ace/css/fonts.googleapis.com.css" th:href="@{/plugins/ace/css/fonts.googleapis.com.css}"></link>
+    <link rel="stylesheet" href="../../../plugins/ace/css/ace.min.css" class="ace-main-stylesheet" id="main-ace-style" th:href="@{/plugins/ace/css/ace.min.css}"></link>
+    <!--[if lte IE 9]>
+    <link rel="stylesheet" href="../../../plugins/ace/css/ace-part2.css"  class="ace-main-stylesheet" th:href="@{/plugins/ace/css/ace-part2.css}"></link>
+    <![endif]-->
+
+    <!--[if lte IE 9]>
+    <link rel="stylesheet" href="../../../plugins/ace/css/ace-ie.min.css"  class="ace-main-stylesheet" th:href="@{/plugins/ace/css/ace-ie.min.css}"></link>
+    <![endif]-->
+
+    <!-- ace settings handler -->
+
+    <!--[if lte IE 8]>
+    <script src="../../../plugins/ace/js/html5shiv.min.js"  th:src="@{/plugins/ace/js/html5shiv.min.js}"></script>
+    <script src="../../../plugins/ace/js/respond.min.js"  th:src="@{/plugins/ace/js/respond.min.js}"></script>
+    <![endif]-->
+</head>
+<body class="no-skin" style="background:white">
+下拉列表的样例！
+
+<div class="main-container ace-save-state" id="main-container">
+
+    <div class="main-content-inner">
+        <div class="page-content">
+
+            <form class="row form-inline" role="form" style="padding: 0px 2px 10px" id="searchForm">
+                <input type="text" class="form-control" placeholder="警戒浮动率" id="rate"/>
+
+                <select class="form-control" id="area" style="width:150px" data-placeholder="区名称:请选择">
+                    <option value="">  </option>
+                </select>
+
+                <select class="form-control" id="hospital" style="width:150px" data-placeholder="医院名称:请选择">
+                    <option value="">  </option>
+                </select>
+
+                <select class="form-control" id="patient_type" style="width:150px" data-placeholder="处方类型:请选择">
+                    <option value="">  </option>
+                </select>
+
+                <select class="form-control" id="dur_event" style="width:150px" data-placeholder="报警类型:请选择">
+                    <option value="">  </option>
+                </select>
+
+                <select class="form-control" id="severity_level" style="width:150px" data-placeholder="报警级别:请选择">
+                    <option value="">  </option>
+                </select>
+
+                <select class="form-control" id="dept" style="width:150px" data-placeholder="科室:请选择">
+                    <option value="">  </option>
+                </select>
+
+                <select class="form-control" id="physician" style="width:150px" data-placeholder="医师姓名:请选择">
+                    <option value="">  </option>
+                </select>
+
+                <div id="daterangeYM" class="input-daterange input-group"  style="width:300px">
+                    <input type="text" class="input-sm form-control" name="start" />
+                    <span class="input-group-addon">
+                        <i class="fa fa-exchange"></i>
+                    </span>
+                    <input type="text" class="input-sm form-control" name="end" />
+                </div>
+
+                <input id="birthdayInput" value="2016-09-14">
+
+                <div id="daterangeY" class="input-daterange input-group"  style="width:300px">
+                    <input type="text" class="input-sm form-control" name="start" id="yStart"/>
+                    <span class="input-group-addon">
+                        <i class="fa fa-exchange"></i>
+                    </span>
+                    <input type="text" class="input-sm form-control" name="end" id="yEnd"/>
+                </div>
+
+                <div class="control-group" id="rGroup">
+                    <label class="control-label bolder blue">药品基本分类</label>
+                    <br>
+                </div>
+                <input type="button" id="btnSearchUser" class="btn btn-info" value="检索" data-loading-text="检索中..."/>
+                <input type="reset" class='btn btn-default' value="Reset"/>
+                <!-- &nbsp; |&nbsp; 	 -->
+            </form>
+
+            <div class="row">
+                <table id="grid-table"></table>
+                <!-- <div id="grid-pager" th:insert="components::btngroup1"></div> -->
+                <div id="grid-pager" ></div>
+            </div>
+        </div>
+    </div>
+</div>
+<!--[if !IE]> -->
+<script src="../../../plugins/ace/js/jquery-2.1.4.min.js" th:src="@{/plugins/ace/js/jquery-2.1.4.min.js}"></script>
+<!-- <![endif]-->
+
+<!--[if IE]>
+<script src="../../../plugins/ace/js/jquery-1.11.3.min.js" th:src="@{/plugins/ace/js/jquery-1.11.3.min.js}">></script>
+<![endif]-->
+<script src="../../../plugins/ace/js/bootstrap.min.js" th:src="@{/plugins/ace/js/bootstrap.min.js}"></script>
+
+<script src="../../../plugins/ace/js/chosen.jquery.min.js" th:src="@{/plugins/ace/js/chosen.jquery.min.js}"></script>
+
+<script src="../../../plugins/ace/js/bootstrap-datepicker.min.js" th:src="@{/plugins/ace/js/bootstrap-datepicker.min.js}"></script>
+
+
+<script src="../../../plugins/ace/js/grid.locale-en.js" th:src="@{/plugins/ace/js/grid.locale-en.js}"></script>
+<!-- ace scripts -->
+<script src="../../../plugins/ace/js/ace-elements.min.js" th:src="@{/plugins/ace/js/ace-elements.min.js}"></script>
+<script src="../../../plugins/ace/js/ace.min.js" th:src="@{/plugins/ace/js/ace.min.js}"></script>
+<script src="../../../plugins/ace/js/jquery.flot.min.js" th:src="@{/plugins/ace/js/jquery.flot.min.js}"></script>
+<script src="../../../plugins/ace/js/jquery.flot.pie.min.js" th:src="@{/plugins/ace/js/jquery.flot.pie.min.js}"></script>
+<script src="../../../plugins/ace/js/jquery.flot.resize.min.js" th:src="@{/plugins/ace/js/jquery.flot.resize.min.js}"></script>
+
+<script>
+    $(function() {
+        ChosenSelect("#area").loadData({selectKey : "getAreaSelect"});
+        ChosenSelect("#hospital").loadData({selectKey : "getAreaSelect"});
+        ChosenSelect("#patient_type").loadData({selectKey : "getPatientTypeSelect"});
+
+        ChosenSelect("#dur_event").loadData({selectKey : "getAreaSelect"});
+        ChosenSelect("#severity_level").loadData({selectKey : "getPatientTypeSelect"});
+
+        ChosenSelect("#dept").loadData({selectKey : "getAreaSelect"});
+        ChosenSelect("#physician").loadData({selectKey : "getPatientTypeSelect"});
+
+        DateRange("#daterangeYM").YM();
+        DateRange("#daterangeY").Y();
+
+        $("#birthdayInput").datepicker({
+            autoclose: true,
+            format: "yyyy-mm-dd",
+            minViewMode: 0,
+            language:'cn',
+            todayBtn: true
+        });
+
+
+        var rGrp=[{text:"抗菌药",value:"KJY"}
+        ,{text:'基本药物',value:"JBYW"}
+        ,{text:'注射剂',value:"ZSJ"}
+        ,{text:'西药',value:"XY"}
+        ,{text:'中成药',value:"ZCY"}
+        ,{text:'饮片',value:"YP"}];
+
+        RadioGroup("#rGroup").init(rGrp);
+    });
+
+    //封装的下拉列表初始化方法
+    function ChosenSelect(id){
+        var obj = {
+            id: id,
+            loadData: function(dataObj,dValue){
+                $.ajax({
+                    "url" : '/YY/common/simpleSelect/',
+                    "type" : 'POST',
+                    "dataType" : 'json',
+                    "timeout" : 20000,
+                    data : dataObj,
+                    success : function(data) {
+                        if(data){
+                            $.each(data, function(index, element) {
+                                $(id).append("<option value='"+element.value+"'>"+element.text+"</option>");
+                            });
+                            if(dValue){
+                                $(id + " option[value='" + dValue + "']").attr('selected', 'selected');
+                            }
+                        }else{
+                            alert(id+"无数据！")
+                        }
+                        $(id).trigger("chosen:updated");
+                        $(id).chosen();
+                    },
+                    error:function(a,b,c){
+                        alert(b+c+a)
+                    }
+                })
+                return obj;
+            }
+        };
+        return obj;
+    }
+
+    //封装的日期初始化
+    function DateRange(classId){
+        $.fn.datepicker.dates['cn'] = {
+            days: ["星期一", "星期二", "星期三", "星期四", "星期五","星期六"],
+            daysShort: ["周日", "周一", "周二", "周三", "周四", "周五", "周六"],
+            daysMin: ["日", "一", "二", "三", "四", "五","六"],
+            months: ["1月", "2月", "3月", "4月", "5月", "6月", "7月", "8月", "9月", "10月", "11月", "12月"],
+            monthsShort: ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12"],
+            today: "今天",
+            clear: "清除",
+            format: "mm/dd/yyyy",
+            titleFormat: "MM yyyy", /* Leverages same syntax as 'format' */
+            weekStart: 0
+        };
+        var obj={
+            classId:classId,
+            YM:function (minViewMode,dateFormat) {
+                $(classId).datepicker({autoclose:true,format:'yyyy-mm',minViewMode:1,language:'cn'});
+            },
+            Y:function (minViewMode,dateFormat) {
+                $(classId).datepicker({autoclose:true,format:'yyyy',minViewMode:2,language:'cn'});
+            }
+        };
+        return obj;
+    }
+
+    //封装单选框
+    function RadioGroup(id){
+        var obj={
+            id:id,
+            init:function (data) {
+                $.each(data, function(index, element) {
+                    $(id).append("<div class='radio' style='width: 90px;'><label><input name='form-field-radio' type='radio' value='"+element.value+"' class='ace' /><span class='lbl'>"+element.text+"</span></label></div>");
+                });
+            }
+        }
+        return obj;
+    }
+
+</script>
+
+</body>
+</html>

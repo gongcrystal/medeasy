@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:context="http://www.springframework.org/schema/context"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+        http://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/context
+        http://www.springframework.org/schema/context/spring-context.xsd">
+
+	<context:property-placeholder location="classpath:properties/production.properties" />
+
+	 <bean id="messageSource" class="org.springframework.context.support.ReloadableResourceBundleMessageSource">
+		<property name="basename" value="classpath:conf/messages_zh_CN" />
+		<!-- <property name="basenames">
+			<list>
+				<value>classpath:conf/messages_zh_CN</value>
+			</list>
+		</property> -->
+		<!-- <property name="basename" value="classpath:conf/messages" /> -->
+	</bean>
+
+	<context:component-scan base-package="com.medimpact.medeasy.common" />
+	<context:component-scan base-package="com.medimpact.medeasy.service" />
+	<context:component-scan base-package="com.medimpact.medeasy.dao" />
+	<context:component-scan base-package="com.medimpact.medeasy.web" />
+	<context:component-scan base-package="com.medimpact.medeasy.entity" />
+
+	<!-- <import resource="classpath*:conf/securityConfig.xml" /> -->
+
+	<import resource="classpath*:mybatis/ds-context.xml" />
+	<import resource="classpath*:mybatis/tx-context.xml" />
+	<import resource="classpath*:mybatis/mapper-context.xml" />
+	<import resource="classpath*:conf/spring-cache.xml" />
+	<import resource="classpath*:conf/spring-aop.xml" />
+
+</beans>

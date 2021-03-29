@@ -1,0 +1,18 @@
+package com.medimpact.medeasy.web.module;
+
+import javax.annotation.Resource;
+
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+
+import com.medimpact.medeasy.service.module.ModuleService;
+
+@Controller
+@RequestMapping("/module")
+public class ModuleCtrl {
+	
+	@Resource
+	private ModuleService moduleService;
+	
+
+}

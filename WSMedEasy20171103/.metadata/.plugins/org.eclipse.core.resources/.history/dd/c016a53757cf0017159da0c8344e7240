@@ -1,0 +1,24 @@
+package com.medimpact.medeasy.service.module;
+
+import java.util.List;
+
+import org.springframework.stereotype.Service;
+import com.medimpact.medeasy.common.bean.ModuleBi;
+import com.medimpact.medeasy.common.exception.BizException;
+
+@Service
+public class ModuleServiceImpl implements ModuleService{
+
+	@Override
+	public List<ModuleBi> listChildrenByParentId(Integer id) throws BizException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public List<ModuleBi> listAllChildren(Integer id) throws BizException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+}

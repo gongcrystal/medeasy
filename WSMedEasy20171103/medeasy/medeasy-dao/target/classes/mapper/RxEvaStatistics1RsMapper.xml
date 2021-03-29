@@ -1,0 +1,201 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC   
+    "-//mybatis.org//DTD Mapper 3.0//EN"  
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.medimpact.medeasy.dao.bp.rxevastatistics.RxEvaStatistics1RsDao">
+<cache type="org.mybatis.caches.ehcache.EhcacheCache" />
+	<resultMap id="resultMap" type="com.medimpact.medeasy.common.bean.statistic.RxReasobleBi">
+		<!-- <result column="dimension_hospital_key" property="hospitalId" /> -->
+		<result column="hospital_code" property="hospitalCode" />
+		<!-- <result column="MED_INSTITUTION_NAME" property="hospitalName" /> -->
+		<result property="okAmount" column="OkPerH" />
+		<result property="unReasonableAmount1" column="unr1PerH" />
+		<result property="unReasonableAmount2" column="unr2PerH" />
+		<result property="unReasonableAmount3" column="unr3PerH" />
+		<result property="abxAmount" column="abxPerH" />
+		<result property="nonOkAbxAmount" column="unrabxPerH" />
+		<result property="nonOkamount" column="nonOkamount" />
+	</resultMap>
+
+	<!-- 检索条件 -->
+	<sql id="searchCond">
+
+		<!-- <if test="irriteId!=null"> AND rx_evaluation_irrational_item_id = #{irriteId} </if> -->
+		<if test="areaCode!=null">
+			AND area_code = #{areaCode}
+		</if>
+
+		<if test="hospitalCode!=null">
+			<!-- AND hospital.dimension_hospital_key = #{hospitalCode} -->
+			AND hospital.hospital_code = #{hospitalCode}
+		</if>
+
+
+		<!-- <if test="patientType!=null"> AND eva.dimension_patient_type = #{patientType} </if> -->
+
+		<if test="patientType!=null">
+			AND pt.patient_type_code = #{patientType}
+		</if>
+
+		<if test="isIV=='Y'">
+			AND eva.is_iv='Y'
+		</if>
+
+		<if test="irriteId!=null">
+			AND eva.rx_evaluation_irrational_item_id=#{irriteId}
+		</if>
+
+		<if test="checkedNodesStr!=null">
+			AND eva.dimesion_drug_key IN
+			(SELECT dd.dimesion_drug_key FROM drug, drug_category dc, drug_category_mapping dcm,
+			dimension_drug dd
+			<where>
+				AND dcm.DRUG_ID=drug.DRUG_ID
+				AND drug.LOCAL_DRUG_ID=drug_code
+				AND dc.drug_category_id=dcm.drug_category_id
+				AND dc.drug_category_type=0
+				AND
+				FIND_IN_SET(dc.category_code,#{checkedNodesStr})
+			</where>
+			)
+		</if>
+
+		<if test="localDrugId!=null">
+			and FIND_IN_SET(dd.drug_code,#{localDrugId}) > 0
+		</if>
+
+		<if test="startDate!=null and endDate!=null">
+			AND full_day BETWEEN #{startDate,jdbcType=DATE} AND #{endDate,jdbcType=DATE}
+		</if>
+
+
+		<if test="hLDrugCategory!=null and hLDrugCategory!='ZSJ'">
+			AND eva.dimesion_drug_key IN
+			(
+			SELECT d.dimesion_drug_key FROM dimension_drug d WHERE INSTR(d.drug_basic_category,#{hLDrugCategory})>0
+			)
+			<!-- AND INSTR(d.drug_basic_category,#{hLDrugCategory})>0; -->
+		</if>
+
+	</sql>
+
+
+	<sql id="selects">
+		rs.hospital_code,sum(Ok) OkPerH,sum(nonOk) nonOkamount,
+		SUM(unr1) unr1PerH, SUM(unr2)
+		unr2PerH,SUM(unr3)
+		unr3PerH,
+		sum(abx) abxPerH,
+		sum(unrabx) unrabxPerH
+	</sql>
+
+	<sql id="selectsIn">
+		hospital.hospital_code,rx_code,
+		sum(DISTINCT is_ok) Ok,
+		sum(DISTINCT is_ok=0) nonOk,
+		sum(DISTINCT unreasonable_1) unr1,
+		sum(DISTINCT unreasonable_2) unr2,
+		sum(DISTINCT unreasonable_3)
+		unr3,
+		sum(DISTINCT eva.is_abx)
+		abx,sum(DISTINCT
+		is_ok=0 and eva.is_abx=1) unrabx
+
+	</sql>
+
+	<sql id="fromTables">
+		subject_rx_eva_analysis_3211 eva,dimension_calander c,dimension_patient_type pt,
+		dimension_hospital hospital,dimension_drug dd <!-- , rx_evaluation_irrational_item 
+			ir -->
+	</sql>
+
+
+	<sql id="concat">
+		AND eva.dimension_calander_key=c.dimension_calander_key
+		AND pt.dimension_patient_type=eva.dimension_patient_type
+		<!-- AND 		hospital.dimension_hospital_key!=0 -->
+		AND hospital.is_current='Y'
+		AND hospital.dimension_hospital_key = eva.dimension_hospital_key
+		AND
+		dd.dimesion_drug_key= eva.dimesion_drug_key
+
+		<!-- AND eva.rx_evaluation_irrational_item_id = ir.rx_evaluation_irrational_item_id -->
+	</sql>
+
+	<select id="listBySys" parameterType="com.medimpact.medeasy.common.form.SearchForm" resultMap="resultMap" useCache="true">
+		<!-- SELECT MED_INSTITUTION_NAME,rst.* FROM ( -->
+
+		SELECT
+		<include refid="selects"></include>
+		FROM
+		(
+		SELECT
+		<include refid="selectsIn"></include>
+		FROM
+		<include refid="fromTables"></include>
+		<where>
+			<include refid="concat"></include>
+			<include refid="searchCond"></include>
+		</where>
+		GROUP BY hospital.hospital_code,rx_code
+		) rs
+		GROUP BY rs.hospital_code
+
+		<!-- ) rst LEFT JOIN hospital ON hospital.MED_INSTITUTION_CODE=rst.hospital_code ORDER BY rst.nonOkamount DESC -->
+
+		ORDER BY nonOkamount DESC
+
+	</select>
+
+	<select id="listByArea" parameterType="com.medimpact.medeasy.common.form.SearchForm" resultMap="resultMap">
+		SELECT MED_INSTITUTION_NAME,rst.* FROM (
+
+		SELECT
+		<include refid="selects"></include>
+		FROM
+		(
+		SELECT
+		<include refid="selectsIn"></include>
+		FROM
+		<include refid="fromTables"></include>
+		<where>
+			<!-- hospital.area_code=#{secUser.hospitalBi.areaCode} -->
+			hospital.area_code=#{secUser.areaCode}
+			<include refid="concat"></include>
+			<include refid="searchCond"></include>
+		</where>
+		GROUP BY hospital.hospital_code,rx_code
+		) rs
+		GROUP BY rs.hospital_code
+
+		) rst
+		LEFT JOIN hospital ON hospital.MED_INSTITUTION_CODE=rst.hospital_code
+		ORDER
+		BY rst.nonOkamount DESC
+	</select>
+
+	<select id="listByHospital" parameterType="com.medimpact.medeasy.common.form.SearchForm" resultMap="resultMap">
+		SELECT MED_INSTITUTION_NAME,rst.* FROM (
+		SELECT
+		<include refid="selects"></include>
+		FROM
+		(
+		SELECT
+		<include refid="selectsIn"></include>
+		FROM
+		<include refid="fromTables"></include>
+		<where>
+			hospital_code=#{secUser.hospitalCode}
+			<include refid="concat"></include>
+			<include refid="searchCond"></include>
+		</where>
+		GROUP BY hospital.hospital_code,rx_code
+		) rs
+		GROUP BY rs.hospital_code
+
+		) rst
+		LEFT JOIN hospital ON hospital.MED_INSTITUTION_CODE=rst.hospital_code
+		ORDER
+		BY rst.nonOkamount DESC
+	</select>
+</mapper>  

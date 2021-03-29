@@ -1,0 +1,8 @@
+package com.medimpact.medeasy.web.module;
+
+import org.springframework.stereotype.Controller;
+
+@Controller
+public class ModuleCtrl {
+
+}

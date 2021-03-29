@@ -1,0 +1,46 @@
+package com.medimpact.medeasy.service.menu;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.annotation.Resource;
+import org.springframework.stereotype.Service;
+import com.medimpact.medeasy.common.DataModel;
+import com.medimpact.medeasy.common.bean.RoleMenuBi;
+import com.medimpact.medeasy.common.bean.security.SecRole;
+import com.medimpact.medeasy.common.form.RoleMenuForm;
+import com.medimpact.medeasy.dao.menu.RoleMenuDao;
+import com.medimpact.medeasy.dao.security.RoleDao;
+
+@Service
+public class RoleMenuServiceImpl implements RoleMenuService {
+	@Resource
+	private  RoleDao rDao;
+	
+	@Resource
+	private RoleMenuDao rmDao;
+	
+
+	@Override
+	@Transactional
+	public DataModel addRoleMenu(RoleMenuForm form) {
+		// TODO Auto-generated method stub
+		SecRole role  =  new SecRole();
+		role.setName(form.getRoleName());
+		role.setDescription(form.getDescription());
+		
+		
+		String[] menus = form.getMenuAuth().trim().split("-");
+		List<RoleMenuBi> rMenuBis = new ArrayList<>();
+		for(int i=0; i<menus.length; i++){
+			RoleMenuBi rMenuBi =  new RoleMenuBi();
+			rMenuBi.setRoleName(form.getRoleName());
+			rMenuBi.setMenuAuth(menus[i]);
+			rMenuBis.add(rMenuBi);
+		}
+		
+		
+		return null;
+	}
+
+}

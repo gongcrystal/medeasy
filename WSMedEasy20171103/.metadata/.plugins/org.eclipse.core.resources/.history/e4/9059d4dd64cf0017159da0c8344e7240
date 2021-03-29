@@ -1,0 +1,5 @@
+package com.medimpact.medeasy.web.role;
+
+public class RoleCtrl {
+
+}

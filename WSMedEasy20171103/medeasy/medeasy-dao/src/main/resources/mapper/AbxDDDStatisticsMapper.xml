@@ -1,0 +1,211 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC   
+    "-//mybatis.org//DTD Mapper 3.0//EN"  
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.medimpact.medeasy.dao.bp.abxdddstatistics.AbxDDDStatisticsDao">
+
+	<!-- <cache type="org.mybatis.caches.ehcache.EhcacheCache" /> -->
+	<resultMap id="abxDDDStatisticsDataMap" type="com.medimpact.medeasy.common.bean.bp.AbxDDDStatisticsBi">
+		<id property="id" column="id" />
+		<result property="drugCategoryName" column="abx_category_name" />
+		<result property="drugName" column="drug_name" />
+		<result property="genericName" column="gen_name" />
+		<result property="dosageForm" column="dosage_form" />
+		<result property="spec" column="spec" />
+		<result property="manufacture" column="manufacture" />
+		<result property="abxLevel" column="abx_level" />
+		<result property="drugPackage" column="drugPackage" />
+		<result property="amount" column="amount" />
+		<result property="amountPercentage" column="amountPercentage" />
+		<result property="totalPercentage" column="totalPercentage" />
+		<result property="rxCount" column="rxCount" />
+		<result property="rxPercentage" column="rxPercentage" />
+		<result property="rxTotalPercentage" column="rxTotalPercentage" />
+		<result property="drugUsedCount" column="drugUsedCount" />
+		<result property="averageAmount" column="averageAmount" />
+		<result property="drugUsage" column="drugUsage" />
+		<result property="ddds" column="ddds" />
+		<result property="dddCount" column="dddCount" />
+		<result property="areaCount" column="areaCount" />
+		<result property="hospitalCount" column="hospitalCount" />
+		<result property="doctorCount" column="doctorCount" />
+		<result property="deptCount" column="deptCount" />
+	</resultMap>
+
+	<select id="getAbxDDDStatistics" parameterType="com.medimpact.medeasy.common.bean.bp.AbxDDDStatisticsBi" resultMap="abxDDDStatisticsDataMap">
+		SELECT
+			dd.drug_name,dd.gen_name,dd.dosage_form,dd.spec,dd.manufacture,code.code_desc abxLevel,base.*
+		FROM
+			(
+				SELECT
+					drug.drug_code,
+					abx.abx_category_name,
+		CONVERT(SUM(abx.amount),DECIMAL(20,2)) amount,
+					CONCAT(SUM(abx.package_size),abx.package_unit) drugPackage,
+					ROUND(SUM(abx.amount)/a.drug_amount*100,2) totalPercentage,
+					COUNT(DISTINCT abx.rx_code) rxCount,
+					ROUND(COUNT(DISTINCT abx.rx_code)/a.rx_amount*100,2) rxTotalPercentage,
+					COUNT(DISTINCT abx.reg_code) drugUsedCount,
+		CONVERT(ROUND(SUM(abx.amount)/COUNT(DISTINCT abx.reg_code),2),DECIMAL(20,2)) averageAmount,
+					ROUND(COUNT(DISTINCT abx.reg_code)/a.reg_amount*100,2) drugUsage,
+					SUM(abx.DDDS) ddds,
+					COUNT(DISTINCT hospital.area_code) areaCount,
+					COUNT(DISTINCT hospital.hospital_code) hospitalCount,
+					COUNT(DISTINCT doctor.doctor_code) doctorCount,
+					COUNT(DISTINCT dept.dept_code) deptCount
+				FROM
+					subject_abx_ddd_4211 abx,dimension_hospital hospital,
+					dimension_dept dept,dimension_doctor doctor,
+					dimension_drug drug,dimension_calander calander,
+					dimension_patient_type ptype,
+					(
+						SELECT
+							SUM(drugAmount.drug_amount)drug_amount,SUM(drugAmount.rx_amount)rx_amount,SUM(drugAmount.reg_amount)reg_amount
+						FROM
+							subject_drug_amount_perday drugAmount,dimension_hospital hospital,
+							dimension_dept dept,dimension_doctor doctor,
+							dimension_calander calander,dimension_patient_type ptype
+						WHERE drugAmount.dimension_hospital_key = hospital.dimension_hospital_key
+						AND drugAmount.dept_key = dept.dept_key
+						AND drugAmount.dimension_doctor_key = doctor.dimension_doctor_key
+						AND drugAmount.dimension_calander_key = calander.dimension_calander_key
+						and drugAmount.dimension_patient_type=ptype.dimension_patient_type
+						<include refid="operateCon"></include>
+						<include refid="serCondition"></include>
+					)a
+				WHERE abx.dimension_hospital_key = hospital.dimension_hospital_key
+				AND abx.dept_key = dept.dept_key
+				AND abx.dimension_doctor_key = doctor.dimension_doctor_key
+				AND abx.dimesion_drug_key = drug.dimesion_drug_key
+				AND abx.dimension_calander_key = calander.dimension_calander_key
+				and abx.dimension_patient_type=ptype.dimension_patient_type
+				<include refid="operateCon"></include>
+				<include refid="serCondition"></include>
+				GROUP BY drug.drug_code
+			)base
+		JOIN dimension_drug dd
+			ON base.drug_code = dd.drug_code AND dd.is_current = 'Y'
+		LEFT JOIN code ON dd.abx_level = code.code_value AND code.code_type='ABX_LEVEL'
+		<if test="sidx != null and sidx != ''">
+			order by ${sidx} ${sord} ,base.drug_code ${sord}
+		</if>
+		<if test="sidx == null or sidx.trim() == ''">
+			order by ddds DESC ,base.drug_code DESC
+		</if>
+		<if test="rowStart!=null and rowSize!=null">
+			limit #{rowStart},#{rowSize}
+		</if>
+	</select>
+	
+	<select id="getAbxDDDCount" parameterType="com.medimpact.medeasy.common.bean.bp.AbxDDDStatisticsBi" resultType="long">
+		SELECT 
+			COUNT(1) 
+		FROM(
+			SELECT
+				abx.*
+			FROM
+				subject_abx_ddd_4211 abx,dimension_hospital hospital,
+				dimension_dept dept,dimension_doctor doctor,
+				dimension_drug drug,dimension_calander calander,dimension_patient_type ptype
+			WHERE abx.dimension_hospital_key = hospital.dimension_hospital_key
+				AND abx.dept_key = dept.dept_key
+				AND abx.dimension_doctor_key = doctor.dimension_doctor_key
+				AND abx.dimesion_drug_key = drug.dimesion_drug_key
+				AND abx.dimension_calander_key = calander.dimension_calander_key
+				and abx.dimension_patient_type=ptype.dimension_patient_type
+				<include refid="operateCon"></include>
+				<include refid="serCondition"></include>
+			GROUP BY drug.drug_code
+		)a
+	</select>
+	
+	<select id="getAbxTotalStatistics" parameterType="com.medimpact.medeasy.common.bean.bp.AbxDDDStatisticsBi" resultMap="abxDDDStatisticsDataMap">
+		SELECT
+			SUM(abx.amount) amount, 
+			COUNT(DISTINCT abx.rx_code) rxCount
+		FROM 
+			subject_abx_ddd_4211 abx,dimension_hospital hospital,
+			dimension_dept dept,dimension_doctor doctor,
+			dimension_drug drug,dimension_calander calander,dimension_patient_type ptype
+		WHERE abx.dimension_hospital_key = hospital.dimension_hospital_key
+		AND abx.dept_key = dept.dept_key
+		AND abx.dimension_doctor_key = doctor.dimension_doctor_key
+		AND abx.dimesion_drug_key = drug.dimesion_drug_key
+		AND abx.dimension_calander_key = calander.dimension_calander_key
+		and abx.dimension_patient_type=ptype.dimension_patient_type
+		<include refid="operateCon"></include>
+		<include refid="serCondition"></include>
+	</select>
+
+	<sql id="serCondition">
+		<if test="startDate!=null and startDate.trim()!=''">
+			<![CDATA[AND date_format(calander.full_day,'%Y-%m') >= #{startDate}]]>
+		</if>
+		<if test="endDate!=null and endDate.trim()!=''">
+			<![CDATA[AND date_format(calander.full_day,'%Y-%m') <= #{endDate}]]>
+		</if>
+		<if test="patientTypeKey != null and patientTypeKey.trim() !='' and patientTypeKey=='OUTPATIENT_URGENT' ">
+			and (patient_type_code='OUTPATIENT' or patient_type_code='URGENT_CARE')
+		</if>
+		<if test="patientTypeKey != null and patientTypeKey.trim() !='' and patientTypeKey!='OUTPATIENT_URGENT' ">
+			and patient_type_code=#{patientTypeKey}
+		</if>
+	</sql>
+	
+	<sql id="operateCon">
+		<if test="operateLevel==1">
+			<if test="areaKey!=null and areaKey.trim()!=''">
+				AND hospital.area_code = #{areaKey}
+			</if>
+			<if test="hospitalKey!=null and hospitalKey.trim()!=''">
+				AND hospital.hospital_code = #{hospitalKey}
+			</if>
+			<if test="deptSerKey!=null and deptSerKey.trim()!=''">
+				AND dept.dept_code = #{deptSerKey}
+			</if>
+			<if test="physicianKey!=null and physicianKey.trim()!=''">
+				AND doctor.doctor_code = #{physicianKey}
+			</if>
+		</if>
+		<if test="operateLevel==2">
+			AND hospital.area_code = #{secUser.areaCode}
+			<if test="hospitalKey!=null and hospitalKey.trim()!=''">
+				AND hospital.hospital_code = #{hospitalKey}
+			</if>
+			<if test="deptSerKey!=null and deptSerKey.trim()!=''">
+				AND dept.dept_code = #{deptSerKey}
+			</if>
+			<if test="physicianKey!=null and physicianKey.trim()!=''">
+				AND doctor.doctor_code = #{physicianKey}
+			</if>
+		</if>
+		<if test="operateLevel==3">
+			AND hospital.area_code = #{secUser.areaCode}
+			AND hospital.hospital_code = #{secUser.hospitalCode}
+			<if test="deptSerKey!=null and deptSerKey.trim()!=''">
+				AND dept.dept_code = #{deptSerKey}
+			</if>
+			<if test="physicianKey!=null and physicianKey.trim()!=''">
+				AND doctor.doctor_code = #{physicianKey}
+			</if>
+		</if>
+		<!--if test="operateLevel==4">
+			AND dept.dept_key = #{secUser.deptId}
+			<if test="areaKey!=null and areaKey.trim()!=''">
+				AND hospital.area_code = #{areaKey}
+			</if>
+			<if test="hospitalKey!=null and hospitalKey.trim()!=''">
+				AND hospital.hospital_code = #{hospitalKey}
+			</if>
+			<if test="physicianKey!=null and physicianKey.trim()!=''">
+				AND doctor.doctor_code = #{physicianKey}
+			</if>
+		</if-->
+		<if test="operateLevel==6">
+			AND hospital.area_code = #{secUser.areaCode}
+			AND hospital.hospital_code = #{secUser.hospitalCode}
+			AND doctor.doctor_code = #{secUser.doctorCode}
+		</if>
+	</sql>
+	
+</mapper>  

@@ -1,0 +1,113 @@
+package com.medimpact.medeasy.web.security;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.annotation.Resource;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.http.MediaType;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import com.medimpact.medeasy.common.DataModel;
+import com.medimpact.medeasy.common.bean.MenuBi;
+import com.medimpact.medeasy.common.bean.basicdt.DrRank;
+import com.medimpact.medeasy.common.bean.security.SecRole;
+import com.medimpact.medeasy.common.form.RoleMenuAuthForm;
+import com.medimpact.medeasy.common.vo.ZTreeNodeVo;
+import com.medimpact.medeasy.service.menu.MenuService;
+import com.medimpact.medeasy.service.security.RoleService;
+
+/**
+ * @author Crystal E-mail:
+ * @version 创建时间：2017年11月21日 类说明
+ */
+@Controller
+@RequestMapping("/role")
+public class RoleCtrl {
+	private final Logger logger = LoggerFactory.getLogger(this.getClass().getName());
+
+	@Resource
+	private RoleService roleService;
+
+	@Resource
+	private MenuService menuService;
+
+	@RequestMapping(value = "/getRoles", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+	@ResponseBody
+	public DataModel<List<SecRole>> getRoles() {
+		System.out.println("getRoles!");
+		return roleService.getRoles();
+	}
+
+	@RequestMapping(value = "/delRole", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+	@ResponseBody
+	public DataModel delRole(@RequestBody SecRole form) {
+
+		System.out.println("delItem id= " + form.getId());
+		roleService.delRole(form);
+		return DataModel.getNotDataSucDataModal();
+	}
+
+	@RequestMapping(value = "/addRole", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+	@ResponseBody
+	public DataModel addRole(SecRole form) {
+		System.out.println("start addRole" + form.getName() + " " + form.getDescription());
+
+		if (form.getId() != null) {
+			return roleService.updateRole(form);
+		}
+		return roleService.addRole(form);
+	}
+
+	@RequestMapping(value = "/addRoleMenuAuth", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+	@ResponseBody
+	public DataModel addRoleMenuAuth(@RequestBody RoleMenuAuthForm form) {
+		System.out.println("addRoleMenuAuth: "+form.getRoleName());
+		return null;
+	}
+
+	@RequestMapping(value = "/listNodes", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+	@ResponseBody
+	public List<ZTreeNodeVo> listNodes() {
+		Integer parentId = 0;
+		List<MenuBi> list = menuService.listAllMenu(parentId);
+		List<ZTreeNodeVo> nodes = new ArrayList<>();
+
+		for (MenuBi mBi : list) {
+			this.recuisiveCpy(mBi, nodes);
+		}
+		return nodes;
+	}
+
+	public void recuisiveCpy(MenuBi mBi, List<ZTreeNodeVo> nodes) {
+
+		if (mBi != null && nodes != null) {
+			ZTreeNodeVo node = new ZTreeNodeVo();
+			this.singleCpy(mBi, node);
+			nodes.add(node);
+
+			if (mBi.isHasSubMenu()) {
+				List<MenuBi> subMenuBis = mBi.getSubMenu();
+				for (MenuBi mBi2 : subMenuBis) {
+					recuisiveCpy(mBi2, nodes);
+				}
+			}
+		}
+	}
+
+	public void singleCpy(MenuBi mBi, ZTreeNodeVo node) {
+		if (mBi != null && node != null) {
+			node.setId(mBi.getMenuId());
+			node.setName(mBi.getMenuName());
+			node.setpId(mBi.getParentId());
+			node.setIsParent(mBi.isHasSubMenu());
+		}
+	}
+}

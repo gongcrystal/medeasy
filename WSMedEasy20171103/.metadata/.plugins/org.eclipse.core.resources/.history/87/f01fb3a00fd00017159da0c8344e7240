@@ -1,0 +1,5 @@
+package com.medimpact.medeasy.common.form;
+
+public class RoleMenuAuthForm {
+
+}

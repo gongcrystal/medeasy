@@ -1,0 +1,11 @@
+.menu_click {
+	
+}
+.nav-tabs > li.active > a, .nav-tabs > li.active > a:focus, .nav-tabs > li.active > a:hover{
+	background-color: #438EB9;
+}
+
+
+.nav-tabs > li > a {
+    padding: 4px 6px 2px;
+}

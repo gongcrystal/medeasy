@@ -1,0 +1,6 @@
+#Tomcat publish data
+#Fri Nov 24 14:34:27 CST 2017
+org.eclipse.jst.jee.server\:/binary\:C\:\\Users\\user\\.m2\\repository\\org\\springframework\\spring-web\\4.3.12.RELEASE\\spring-web-4.3.12.RELEASE.jar=WEB-INF/lib/spring-web-4.3.12.RELEASE.jar
+org.eclipse.jst.j2ee.server\:medeasy-common=WEB-INF/lib/medeasy-common-0.0.1-SNAPSHOT.jar
+org.eclipse.jst.j2ee.server\:medeasy-service=WEB-INF/lib/medeasy-service-0.0.1-SNAPSHOT.jar
+org.eclipse.jst.j2ee.server\:medeasy-dao=WEB-INF/lib/medeasy-dao-0.0.1-SNAPSHOT.jar

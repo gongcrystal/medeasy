@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC   
+    "-//mybatis.org//DTD Mapper 3.0//EN"  
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.medimpact.medeasy.dao.log.LogDao">
+
+	<!-- <cache type="org.mybatis.caches.ehcache.EhcacheCache" /> -->
+	<resultMap id="resultMap" type="com.medimpact.medeasy.common.bean.LogBi">
+		<id property="id" column="id" />
+		<result column="method" property="method" />
+		<result column="username" property="username" />
+		<result column="login_time" property="loginTime" />
+		<result column="logout_time " property="logoutTime" />
+		<result column="cond" property="cond" />		
+		<result column="start_sensitive_action" property="startSensitiveAction" />
+		<result column="doctor_name" property="doctorName" />
+		<result column="name_ch" property="nameCh" />
+		<result column="searched_drname" property="searchedDrname" />
+		<result column="searched_drugname" property="searchedDrugname" />
+	</resultMap>
+
+	<sql id="pagers">
+		<if test="rowStart!=null and rowSize!=null">
+			limit #{rowStart},#{rowSize}
+		</if>
+	</sql>
+	
+	<sql id="conds">
+		l.username = u.username AND rs.method=l.method
+			<if test="nameCh!=null">
+				AND rs.name_ch = #{nameCh}
+			</if>
+			<if test="username!=null">
+				AND l.username LIKE CONCAT ('%',#{username},'%')
+			</if>
+
+			<if test="drName!=null">
+				AND u.doctor_name LIKE CONCAT ('%',#{drName},'%')
+			</if>
+			<if test="startDate!=null and endDate!=null">
+				AND start_sensitive_action BETWEEN #{startDate,jdbcType=DATE} AND #{endDate,jdbcType=DATE}
+			</if>
+
+			<if test="cond!=null">
+				AND l.cond = #{cond}
+			</if>
+	</sql>
+
+	<select id="list" parameterType="com.medimpact.medeasy.common.form.LogForm" resultMap="resultMap">
+		SELECT * FROM log l, userbase u,rs
+		<where>
+			<include refid="conds"></include>
+		</where>
+
+		ORDER BY rs.name_ch
+		<include refid="pagers"></include>
+
+	</select>
+
+
+	<select id="getCount" parameterType="com.medimpact.medeasy.common.form.LogForm" resultType="long">
+		SELECT count(l.id) FROM log l, userbase u, rs
+		<where>
+			<include refid="conds"></include>
+		</where>
+	</select>
+
+	<select id="insert" parameterType="com.medimpact.medeasy.common.bean.LogBi">
+		INSERT INTO
+		log(method,username,login_time,logout_time,cond,start_sensitive_action,searched_drname,searched_drugname)
+		VALUES
+		(#{method},#{username},#{loginTime},#{logoutTime},#{cond},#{startSensitiveAction},#{searchedDrname},#{searchedDrugname});
+	</select>
+
+</mapper>  

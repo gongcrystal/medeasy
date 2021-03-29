@@ -1,0 +1,109 @@
+package com.medimpact.medeasy.web;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+
+/** 
+* @author Crystal E-mail: 
+* @version 创建时间：2017年11月7日 
+* 类说明 
+*/
+@Controller
+public class FuncCtrl {
+	@RequestMapping({"/"})
+	public String index() {
+	    return "index";
+	}
+	
+	@RequestMapping({"/main"})
+	public String main() {
+	    return "main";
+	}
+	
+	@RequestMapping({"/role/roleMng"})
+	public String roleMng() {
+	    return "/security/roleMng";
+	}
+	
+	@RequestMapping({"/test"})
+	public String test() {
+	    return "test";
+	}
+	
+	@RequestMapping({"/iframe"})
+	public String iframetest() {
+	    return "iframetest";
+	}
+	
+	@RequestMapping({"/iframe1"})
+	public String iframetest1() {
+	    return "iframetest1";
+	}
+	
+	@RequestMapping({"/a"})
+	public String iframea() {
+	    return "a";
+	}
+	
+	@RequestMapping({"/home"})
+	public String home() {
+	    return "home";
+	}
+	
+	@RequestMapping({"/b"})
+	public String iframeb() {
+	    return "b";
+	}
+	@RequestMapping({"/c"})
+	public String iframec() {
+	    return "c";
+	}
+	
+	
+	@RequestMapping({"/mypage"})
+	public String myPage() {
+	    return "/security/mypage";
+	}
+	
+	@RequestMapping({"/login"})
+	public String login() {
+	    return "/security/login";
+	}
+	
+	@RequestMapping({"/denied"})
+	public String denied() {
+	    return "/security/denied";
+	}
+	
+	/*@RequestMapping({"/logout"})
+	public String logout() {
+	    return "/security/logout";
+	}*/
+	
+	 @RequestMapping(value = "/logout", method = RequestMethod.GET)
+	  public String logout(HttpServletRequest request, HttpServletResponse response) {
+	    Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+	    if (auth != null) {
+	      new SecurityContextLogoutHandler().logout(request, response, auth);
+	    }
+	    return "redirect:/login";
+	  }
+	
+	@RequestMapping({"/basicdt/drRank"})
+	public String drRank() {
+	    return "/basicdt/dr_rank";
+	}
+	
+	@RequestMapping({"/drug/drug_apply"})
+	public String drugApply() {
+	    return "/drugstatistics/drug_apply";
+	}
+	
+}

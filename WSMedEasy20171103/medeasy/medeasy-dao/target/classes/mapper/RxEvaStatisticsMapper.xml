@@ -1,0 +1,241 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC   
+    "-//mybatis.org//DTD Mapper 3.0//EN"  
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.medimpact.medeasy.dao.bp.rxevastatistics.RxEvaStatisticsDao">
+
+	<!-- <cache type="org.mybatis.caches.ehcache.EhcacheCache" /> -->
+	<resultMap id="resultMap" type="com.medimpact.medeasy.common.bean.statistic.RxEvaStBi">
+		<id property="id" column="dimension_hospital_key" />
+		<result column="hospital_name" property="hospitalName" />
+		<result column="area_name" property="areaName" />
+		<result column="patientType" property="patientType" />
+		<result column="rxAmount" property="rxAmount" />
+		<result column="deptAmount" property="deptAmount" />
+		<result column="drAmount" property="drAmount" />
+		<result column="drugAmount" property="drugAmount" />
+		<result column="mamount" property="mamount" />
+		<result property="okAmount" column="okAmount" />
+
+		<result property="unReasonableAmount1" column="unReasonableAmount1" />
+		<result property="unReasonableAmount2" column="unReasonableAmount2" />
+		<result property="unReasonableAmount3" column="unReasonableAmount3" />
+		<result property="abxCount" column="abxCount" />
+		<result property="nonOkAbxAmount" column="nonOkAbxAmount" />  
+		<result property="problemCodeAmount" column="problemCodeAmount" />
+	</resultMap>
+
+	<!-- 检索条件 -->
+	<sql id="searchCond">
+
+		<!-- <if test="irriteId!=null"> AND rx_evaluation_irrational_item_id = #{irriteId} </if> -->
+
+		<if test="patientType!=null">
+			AND eva.dimension_patient_type = #{patientType}
+		</if>
+
+		<if test="isIV=='Y'">
+			AND eva.is_iv='Y'
+		</if>
+
+		<if test="irriteId!=null">
+			AND eva.dimension_irr_item_key=#{irriteId}
+		</if>
+
+
+		<!-- 注射剂且是中药 ,此处假设2-2是中药，以后具体确定后再做修改 -->
+		<if test="isHervalIv=='Y'">
+			AND eva.is_iv='Y'
+			AND eva.dimesion_drug_key IN
+			(
+			SELECT d.dimesion_drug_key FROM dimension_drug d WHERE
+			INSTR(d.drug_basic_category,'0-583')>0
+			)
+		</if>
+
+		<if test="drugCLi!=null">
+			AND eva.dimesion_drug_key IN
+			(SELECT dd.dimesion_drug_key FROM drug, drug_category dc, drug_category_mapping dcm,
+			dimension_drug dd
+			<where>
+				dc.category_name IN
+				<foreach collection="drugCLi" item="element" open="(" separator="," close=")">
+					#{element}
+				</foreach>
+				AND dcm.DRUG_ID=drug.DRUG_ID AND drug.LOCAL_DRUG_ID=drug_code AND dc.drug_category_id=dcm.drug_category_id
+			</where>
+			)
+		</if>
+
+		<if test="startDate!=null and endDate!=null">
+			AND full_day BETWEEN #{startDate,jdbcType=DATE} AND #{endDate,jdbcType=DATE}
+		</if>
+
+		<if test="hLDrugCategory!=null">
+			AND eva.dimesion_drug_key IN
+			(
+			SELECT d.dimesion_drug_key FROM dimension_drug d WHERE INSTR(d.drug_basic_category,#{hLDrugCategory})>0
+			)
+			<!-- AND INSTR(d.drug_basic_category,#{hLDrugCategory})>0; -->
+		</if>
+
+	</sql>
+
+	<sql id="concat">
+		eva.dimension_calander_key=c.dimension_calander_key
+		AND pt.dimension_patient_type=eva.dimension_patient_type
+		<!-- AND eva.rx_evaluation_irrational_item_id = ir.rx_evaluation_irrational_item_id -->
+	</sql>
+
+	<sql id="fromTables">
+		subject_rx_eva_analysis_3211 eva,dimension_calander c,dimension_patient_type pt<!-- , rx_evaluation_irrational_item ir -->
+	</sql>
+
+	<sql id="selects">
+		dimension_hospital_key, GROUP_CONCAT(DISTINCT patientType1) patientType,
+		count(distinct rxCode1) rxAmount,
+		sum(deptAmount1) deptAmount,
+		sum(drAmount1) drAmount,
+		sum(drugAmount1) drugAmount,
+		sum(amount1) mamount,
+		sum(isOk1) okAmount,
+		sum(unr1) unReasonableAmount1,
+		sum(unr2)
+		unReasonableAmount2,
+		sum(unr3) unReasonableAmount3,
+		sum(abx1) abxCount,
+		sum(nonOkAbxAmount1) nonOkAbxAmount,
+		sum(distinct result.problemCodeAmountIn1) problemCodeAmount
+	</sql>
+
+	<sql id="selectsIn">
+		dimension_hospital_key, rx_code rxCode1, pt.patient_type_name patientType1,
+		count(distinct dept_key) deptAmount1,
+		count(distinct
+		dimension_doctor_key) drAmount1,
+		count(distinct dimesion_drug_key) drugAmount1,
+		sum(amount) amount1,sum(DISTINCT
+		is_ok=1) isOk1,
+		sum(DISTINCT
+		unreasonable_1=1) unr1,
+		sum(DISTINCT unreasonable_2=1) unr2,
+		sum(DISTINCT unreasonable_3=1) unr3,
+		sum(DISTINCT is_ok=0 and
+		is_abx=1) nonOkAbxAmount1,
+		sum(DISTINCT is_abx=1) abx1,
+		sum(distinct rx_evaluation_irrational_item_id) problemCodeAmountIn1
+	</sql>
+
+	<sql id="pagers">
+		<if test="rowStart!=null and rowSize!=null">
+			limit #{rowStart},#{rowSize}
+		</if>
+	</sql>
+
+	<select id="listBySys" parameterType="com.medimpact.medeasy.common.form.SearchForm" resultMap="resultMap">
+		SELECT * FROM dimension_hospital h
+		LEFT JOIN
+		(
+
+		SELECT
+		<include refid="selects"></include>
+
+		FROM
+
+		(
+		SELECT
+		<include refid="selectsIn"></include>
+		FROM
+		<include refid="fromTables"></include>
+		<where>
+			<include refid="concat"></include>
+			<include refid="searchCond"></include>
+		</where>
+		GROUP BY dimension_hospital_key, rx_code
+		) result
+		GROUP BY dimension_hospital_key
+
+		) AS rlt
+		ON h.dimension_hospital_key = rlt.dimension_hospital_key
+		ORDER BY h.dimension_hospital_key
+		<include refid="pagers"></include>
+	</select>
+
+	<select id="listByArea" parameterType="com.medimpact.medeasy.common.form.SearchForm" resultMap="resultMap">
+
+		SELECT * FROM
+		<!-- (SELECT * FROM dimension_hospital h1 WHERE h1.area_code=#{secUser.hospitalBi.areaCode} ) AS h -->
+		(SELECT * FROM dimension_hospital h1 WHERE h1.area_code=#{secUser.areaCode} ) AS h
+		LEFT JOIN
+		(
+		SELECT
+		<include refid="selects"></include>
+		FROM
+		(
+		SELECT
+		<include refid="selectsIn"></include>
+		FROM
+		<include refid="fromTables"></include>
+		<where>
+			<include refid="concat"></include>
+			<include refid="searchCond"></include>
+		</where>
+		GROUP BY dimension_hospital_key, rx_code
+		) result
+		GROUP BY dimension_hospital_key
+
+		) AS rlt
+		ON h.dimension_hospital_key = rlt.dimension_hospital_key
+		ORDER BY h.dimension_hospital_key
+		<include refid="pagers"></include>
+	</select>
+
+	<select id="listByHospital" parameterType="com.medimpact.medeasy.common.form.SearchForm" resultMap="resultMap">
+
+		SELECT * FROM
+		(SELECT * FROM dimension_hospital h1 WHERE h1.hospital_code=#{secUser.hospitalCode} ) AS h
+		LEFT JOIN
+		(
+		SELECT
+		<include refid="selects"></include>
+		FROM
+		(
+		SELECT
+		<include refid="selectsIn"></include>
+		FROM
+		<include refid="fromTables"></include>
+		<where>
+			<include refid="concat"></include>
+			<include refid="searchCond"></include>
+		</where>
+		GROUP BY dimension_hospital_key, rx_code
+		) result
+		GROUP BY dimension_hospital_key
+
+		) AS rlt
+		ON h.dimension_hospital_key = rlt.dimension_hospital_key
+		ORDER BY h.dimension_hospital_key
+		<include refid="pagers"></include>
+
+	</select>
+
+	<select id="selectCountBySys" parameterType="com.medimpact.medeasy.common.form.SearchForm" resultType="long">
+		SELECT count( dimension_hospital_key)
+		from dimension_hospital
+	</select>
+
+	<select id="selectCountByArea" parameterType="com.medimpact.medeasy.common.form.SearchForm" resultType="long">
+		SELECT count( dimension_hospital_key)
+		from dimension_hospital
+		<!-- WHERE h1.area_code=#{secUser.hospitalBi.areaCode} -->
+		
+		WHERE h1.area_code=#{secUser.areaCode}
+	</select>
+
+	<select id="selectCountByHospital" parameterType="com.medimpact.medeasy.common.form.SearchForm" resultType="long">
+		SELECT count( dimension_hospital_key)
+		from dimension_hospital h1
+		WHERE h1.hospital_code=#{secUser.hospitalCode}
+	</select>
+
+</mapper>  

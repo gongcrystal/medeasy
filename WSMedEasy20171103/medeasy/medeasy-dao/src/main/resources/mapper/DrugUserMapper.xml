@@ -1,0 +1,182 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC   
+    "-//mybatis.org//DTD Mapper 3.0//EN"  
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.medimpact.medeasy.dao.druguse.DrugUseDao">
+
+	<resultMap type="com.medimpact.medeasy.common.bean.statistic.HospitalDrugUseStBi" id="hDrugUseMap">
+		<result column="MED_INSTITUTION_NAME" property="hospitalName" />
+		<result column="area_name" property="areaName" />
+		<result column="regAmount" property="regAmount" />
+		<result column="rxAmount" property="rxAmount" />
+		<!-- <result column="drugSpecAmount" property="drugSpecAmount" /> -->
+		<result column="mamount" property="mamount" />		
+		<!-- <result column="bigRx" property="bigRx" /> -->
+		<result column="drugDayPerHp" property="drugDayPerHp" />
+		<result column="depts" property="depts" />
+		<result column="Drs" property="drs" />
+		<result column="drugSpecAmount1" property="drugSpecAmount1" />
+
+	</resultMap>
+
+	<!-- 默认检测当前月 -->
+	<sql id="searchCond1">
+		<!-- full_day BETWEEN #{startDate,jdbcType=DATE} AND #{endDate,jdbcType=DATE} -->
+		AND year=#{year} AND month=#{month}
+	</sql>
+
+
+	<sql id="searchCond">
+		<if test="areaCode!=null">
+			AND area_code = #{areaCode}
+		</if>
+
+		<if test="hospitalCode!=null">
+			<!-- AND hospital.dimension_hospital_key = #{hospitalCode} -->
+			AND hospital.hospital_code = #{hospitalCode}
+		</if>
+		<if test="patientType!=null">
+			<!-- AND du.dimension_patient_type = #{patientType} -->
+
+			AND du.patient_type = #{patientType}
+		</if>
+
+		<if test="isIV=='Y'">
+			AND du.is_iv='Y'
+		</if>
+
+		<if test="drugCLi!=null">
+			AND du.dimesion_drug_key IN
+			(SELECT dd.dimesion_drug_key FROM drug, drug_category dc, drug_category_mapping dcm,
+			dimension_drug dd
+			<where>
+				dc.category_name IN
+				<foreach collection="drugCLi" item="element" open="(" separator="," close=")">
+					#{element}
+				</foreach>
+				AND dcm.DRUG_ID=drug.DRUG_ID AND drug.LOCAL_DRUG_ID=drug_code AND dc.drug_category_id=dcm.drug_category_id
+			</where>
+			)
+		</if>
+
+		<if test="startDate!=null and endDate!=null">
+			AND full_day BETWEEN #{startDate,jdbcType=DATE} AND #{endDate,jdbcType=DATE}
+		</if>
+
+		<if test="hLDrugCategory!=null and hLDrugCategory!='ZSJ'">
+			AND du.dimesion_drug_key IN
+			(
+			SELECT d.dimesion_drug_key FROM dimension_drug d WHERE INSTR(d.drug_basic_category,#{hLDrugCategory})>0
+			)
+			<!-- AND INSTR(d.drug_basic_category,#{hLDrugCategory})>0; -->
+		</if>
+
+	</sql>
+
+	<sql id="selects">
+		du.dimension_hospital_key ,hospital.hospital_code,
+		count(distinct reg_code) regAmount,count(distinct rx_code) rxAmount,
+		sum(amount) as mamount,
+		sum(drug_days) as drugDayPerHp,
+		count(distinct du.dimension_doctor_key) as Drs,
+		<!-- count(distinct du.dept_key) as depts, -->
+		count(DISTINCT ddept.dept_code) as depts,
+		hospital.area_name, hospital.hospital_name,
+		count(distinct dd.drug_code) drugSpecAmount1 
+		<!-- count(distinct du.dimesion_drug_key) drugSpecAmount1 -->		
+		
+	</sql>
+
+	<sql id="concat">
+		AND du.dimension_calander_key=c.dimension_calander_key
+		AND du.dimension_hospital_key=hospital.dimension_hospital_key
+		AND hospital.dimension_hospital_key!=0
+		AND dd.dimesion_drug_key=du.dimesion_drug_key
+		AND ddept.dept_key = du.dept_key
+		
+	</sql>
+
+	<sql id="fromTables">
+		subject_drug_use_analys_1311 du, dimension_calander c, dimension_hospital hospital, 
+		dimension_drug dd, dimension_dept ddept
+	</sql>
+
+	<sql id="pagers">
+		<if test="rowStart!=null and rowSize!=null">
+			limit #{rowStart},#{rowSize}
+		</if>
+	</sql>
+
+	<select id="listBySys" parameterType="com.medimpact.medeasy.common.form.SearchForm" resultMap="hDrugUseMap">
+		SELECT MED_INSTITUTION_NAME, rst.* FROM
+		(SELECT
+		<include refid="selects"></include>
+		FROM
+		<include refid="fromTables"></include>
+		<where>
+			
+			<include refid="concat"></include>
+			<!-- <include refid="searchCond1"></include> -->
+			<include refid="searchCond"></include>
+		</where>
+		<!-- GROUP BY du.dimension_hospital_key -->		
+		GROUP BY hospital.hospital_code
+		) rst
+		LEFT JOIN hospital ON hospital.MED_INSTITUTION_CODE=rst.hospital_code
+		ORDER BY rst.mamount DESC
+		
+		<!-- <include refid="pagers"></include> -->
+	</select>
+
+	<!-- <select id="selectCountBySys" parameterType="com.medimpact.medeasy.common.form.SearchForm" resultType="long"> SELECT count(distinct dh.dimension_hospital_key) 
+		FROM dimension_hospital dh LEFT JOIN (SELECT du.dimension_hospital_key FROM <include refid="fromTables"></include> <where> <include refid="concat"></include> 
+		<include refid="searchCond"></include> </where> ) as du1 ON dh.dimension_hospital_key = du1.dimension_hospital_key </select> -->
+
+	<select id="listByArea" parameterType="com.medimpact.medeasy.common.form.SearchForm" resultMap="hDrugUseMap">
+		SELECT MED_INSTITUTION_NAME, rst.* FROM
+		(
+		SELECT
+		<include refid="selects"></include>
+		FROM
+		<include refid="fromTables"></include>
+		<where>
+			<!-- hospital.area_code=#{secUser.hospitalBi.areaCode} -->
+			hospital.area_code=#{secUser.areaCode}
+			<include refid="concat"></include>
+			<!-- <include refid="searchCond1"></include> -->
+			<include refid="searchCond"></include>  <!-- search另起 -->
+		</where>
+		GROUP BY hospital.hospital_code
+		) rst
+		LEFT JOIN hospital ON hospital.MED_INSTITUTION_CODE=rst.hospital_code
+		ORDER BY rst.mamount DESC
+		<!-- <include refid="pagers"></include> -->
+	</select>
+
+	<!-- <select id="selectCountByArea" parameterType="com.medimpact.medeasy.common.form.SearchForm" resultType="long"> SELECT * FROM (SELECT * from dimension_hospital 
+		where area_code=#{secUser.hospitalBi.areaCode}) AS dh1 LEFT JOIN ( SELECT <include refid="selects"></include> FROM <include refid="fromTables"></include> 
+		<where> <include refid="concat"></include> <include refid="searchCond"></include> </where> GROUP BY du.dimension_hospital_key ) as duse1 ON dh1.dimension_hospital_key 
+		= duse1.dimension_hospital_key </select> -->
+
+	<select id="listByHospital" parameterType="com.medimpact.medeasy.common.form.SearchForm" resultMap="hDrugUseMap">
+		SELECT MED_INSTITUTION_NAME, rst.* FROM
+		(
+		SELECT
+		<include refid="selects"></include>
+		FROM
+		<include refid="fromTables"></include>
+		<where>
+			hospital.hospital_code=#{secUser.hospitalCode}
+			<include refid="concat"></include>
+			<!-- <include refid="searchCond1"></include> -->
+			<include refid="searchCond"></include>
+		</where>
+		GROUP BY hospital.hospital_code
+		) rst
+		LEFT JOIN hospital ON hospital.MED_INSTITUTION_CODE=rst.hospital_code
+		ORDER BY rst.mamount DESC
+		<!-- ORDER BY duse1.dimension_hospital_key -->
+		<!-- <include refid="pagers"></include> -->
+	</select>
+
+</mapper>

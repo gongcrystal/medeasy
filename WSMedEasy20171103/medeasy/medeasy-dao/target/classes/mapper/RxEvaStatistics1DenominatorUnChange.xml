@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC   
+    "-//mybatis.org//DTD Mapper 3.0//EN"  
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.medimpact.medeasy.dao.bp.rxevastatistics.RxEvaStatistics1DenominatorUnChangeDao">
+
+	<cache type="org.mybatis.caches.ehcache.EhcacheCache" />
+	<resultMap id="resultMap" type="com.medimpact.medeasy.common.bean.statistic.RxEvaStBi">
+		<id property="id" column="dimension_hospital_key" />
+		<result column="MED_INSTITUTION_NAME" property="hospitalName" />
+		<result column="area_name" property="areaName" />
+		<!-- <result column="dimension_patient_type" property="patientType" /> -->
+		<result column="rxAmount" property="rxAmount" />
+		<result column="deptAmount" property="deptAmount" />
+		<result column="drAmount" property="drAmount" />
+		<result column="drugAmount" property="drugAmount" />
+		<result column="mamount" property="mamount" />
+		<result property="problemCodeAmount" column="problemCodeAmount" />
+		<result column="hospital_code" property="hospitalCode" />
+	</resultMap>
+
+	<!-- 检索条件 -->
+	<sql id="searchCond">
+		<if test="areaCode!=null">
+			AND area_code = #{areaCode}
+		</if>
+
+		<if test="hospitalCode!=null">
+			<!-- AND hospital.dimension_hospital_key = #{hospitalCode} -->
+			AND hospital.hospital_code = #{hospitalCode}
+		</if>
+
+		<!-- <if test="patientType!=null"> AND eva.dimension_patient_type = #{patientType} </if> -->
+
+		<if test="patientType!=null">
+			AND pt.patient_type_code = #{patientType}
+		</if>
+
+		<!-- <if test="isIV=='Y'"> AND eva.is_iv='Y' </if> -->
+
+
+		<if test="startDate!=null and endDate!=null">
+			AND full_day BETWEEN #{startDate,jdbcType=DATE} AND #{endDate,jdbcType=DATE}
+		</if>
+
+
+	</sql>
+
+	<sql id="concat">
+		AND eva.dimension_calander_key=c.dimension_calander_key
+		AND pt.dimension_patient_type=eva.dimension_patient_type
+		<!-- AND	hospital.dimension_hospital_key!=0 -->
+		AND  hospital.is_current='Y'
+		AND hospital.dimension_hospital_key = eva.dimension_hospital_key
+		AND ddept.dept_key = eva.dept_key
+		<!-- AND eva.rx_evaluation_irrational_item_id = ir.rx_evaluation_irrational_item_id -->
+	</sql>
+
+	<sql id="fromTables">
+		subject_rx_eva_analysis_3211 eva,dimension_calander c,dimension_patient_type pt,
+		dimension_hospital hospital,dimension_dept ddept <!-- , rx_evaluation_irrational_item ir -->
+	</sql>
+
+	<sql id="selects">
+		hospital_code, area_name,patient_type_name,count(DISTINCT eva.rx_code) rxAmount, count(DISTINCT ddept.dept_code) deptAmount,
+		COUNT(DISTINCT
+		dimension_doctor_key) drAmount,COUNT(DISTINCT dimesion_drug_key) drugAmount, sum(amount) mamount,
+		count(DISTINCT rx_evaluation_irrational_item_id)
+		problemCodeAmount<!-- , eva.dimension_patient_type -->
+	</sql>
+
+
+	<sql id="pagers">
+		<if test="rowStart!=null and rowSize!=null">
+			limit #{rowStart},#{rowSize}
+		</if>
+	</sql>
+
+	<select id="listBySys" parameterType="com.medimpact.medeasy.common.form.SearchForm" resultMap="resultMap" useCache="true">
+
+		SELECT  MED_INSTITUTION_NAME,rst.* FROM
+		(
+		SELECT
+		<include refid="selects"></include>
+		FROM
+		<include refid="fromTables"></include>
+		<where>
+			<include refid="concat"></include>
+			<include refid="searchCond"></include>
+		</where>
+		GROUP BY hospital.hospital_code
+		) rst
+		LEFT JOIN hospital ON hospital.MED_INSTITUTION_CODE=rst.hospital_code
+
+	</select>
+
+	<select id="listByArea" parameterType="com.medimpact.medeasy.common.form.SearchForm" resultMap="resultMap">
+		SELECT  MED_INSTITUTION_NAME,rst.* FROM
+		(
+		SELECT
+		<include refid="selects"></include>
+		FROM
+		<include refid="fromTables"></include>
+		<where>
+			<!-- hospital.area_code=#{secUser.hospitalBi.areaCode} -->
+			hospital.area_code=#{secUser.areaCode}
+			<include refid="concat"></include>
+			<include refid="searchCond"></include>
+		</where>
+		GROUP BY hospital.hospital_code
+		) rst
+		LEFT JOIN hospital ON hospital.MED_INSTITUTION_CODE=rst.hospital_code
+	</select>
+
+	<select id="listByHospital" parameterType="com.medimpact.medeasy.common.form.SearchForm" resultMap="resultMap">
+		SELECT  MED_INSTITUTION_NAME,rst.* FROM
+		(
+		SELECT
+		<include refid="selects"></include>
+		FROM
+		<include refid="fromTables"></include>
+		<where>
+			hospital_code=#{secUser.hospitalCode}
+			<include refid="concat"></include>
+			<include refid="searchCond"></include>
+		</where>
+		GROUP BY hospital.hospital_code
+		) rst
+		LEFT JOIN hospital ON hospital.MED_INSTITUTION_CODE=rst.hospital_code
+
+	</select>
+
+	<select id="selectCountBySys" parameterType="com.medimpact.medeasy.common.form.SearchForm" resultType="long">
+		SELECT count( dimension_hospital_key)
+		from dimension_hospital
+	</select>
+
+	<select id="selectCountByArea" parameterType="com.medimpact.medeasy.common.form.SearchForm" resultType="long">
+		SELECT count( dimension_hospital_key)
+		from dimension_hospital
+		<!-- WHERE h1.area_code=#{secUser.hospitalBi.areaCode} -->
+		WHERE h1.area_code=#{secUser.areaCode}
+	</select>
+
+	<select id="selectCountByHospital" parameterType="com.medimpact.medeasy.common.form.SearchForm" resultType="long">
+		SELECT count(
+		dimension_hospital_key)
+		from dimension_hospital h1
+		WHERE h1.hospital_code=#{secUser.hospitalCode}
+	</select>
+
+</mapper>  

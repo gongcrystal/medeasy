@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.medimpact.medeasy.dao.dist.DistDao">
+
+	<!-- <cache type="org.mybatis.caches.ehcache.EhcacheCache" /> -->
+	
+	<resultMap id="distMap" type="com.medimpact.medeasy.common.bean.DistBi">
+		<id property="id" column="area_id" />
+		<result property="name" column="area_name" />	
+		<result property="code" column="area_code" />	
+		<result property="createTime" column="create_time" />	
+		<result property="updateTime" column="last_update_time" />	
+	</resultMap>  
+	
+	<select id="getDistByCode"  parameterType="string" resultMap="distMap" >
+		select * from area d  WHERE area_code=#{code}
+	</select> 
+	
+	<select id="getDistsByOpLevel"  parameterType="com.medimpact.medeasy.common.bean.DistBi" resultMap="distMap" >
+		select * from area d  WHERE d.op_level &gt;= #{operateLevel} and d.area_code =#{secUser.areaCode}  order by  (area_name+0)
+		
+		<!-- select * from area d  WHERE d.op_level &gt;= #{operateLevel} and d.area_id =#{secUser.areaId}  order by  (area_name+0) --> <!-- Crystal areaCode -->
+	</select>
+	
+	
+	
+	<select id="list" resultMap="distMap" >
+		select * from area d order by  (area_name+0)
+	</select> 
+</mapper>    

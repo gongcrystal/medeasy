@@ -1,0 +1,16 @@
+package com.medimpact.medeasy.common.bean;
+
+import java.io.Serializable;
+
+public class RoleMenuBi implements Serializable{
+	
+	private static final long serialVersionUID = -9049969635008658337L;
+	private Integer id;
+	private String roleName;	
+	private String menuName;
+	
+	public RoleMenuBi() {
+		super();
+	}
+	
+}

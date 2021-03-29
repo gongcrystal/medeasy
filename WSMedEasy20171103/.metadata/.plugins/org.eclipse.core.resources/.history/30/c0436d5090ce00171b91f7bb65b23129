@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC   
+    "-//mybatis.org//DTD Mapper 3.0//EN"  
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.medimpact.medeasy.dao.security.RoleDao">
+	<resultMap id="roleMap"		type="com.medimpact.medeasy.common.bean.security.SecRole">
+		<result property="id" column="id" />
+		<result property="name" column="name" />
+		<result property="password" column="description" />
+		<result property="enabled" column="enable" />
+	</resultMap>
+
+	<select id="getRolesByUserId" parameterType="int" resultType="com.medimpact.medeasy.common.bean.security.SecRole">
+		SELECT * FROM role b, userbase_role ur where b.id=ur.role_id and ur.user_id=#{userId}
+	</select>
+	
+	<select id="getRoles" resultType="com.medimpact.medeasy.common.bean.security.SecRole">
+		SELECT * FROM role;
+	</select>
+	
+	<select id="selectCount" resultType="long">
+		SELECT COUNT(id) from role;
+	</select>
+	
+	<select id="insert" parameterType="com.medimpact.medeasy.common.bean.security.SecRole">
+		INSERT INTO role(id,name,description,enable) values(#{id},#{name},#{description},#{enable})
+	</select>
+
+	<update id="update" parameterType="com.medimpact.medeasy.common.bean.security.SecRole">
+		update role
+		<trim prefix="SET" suffixOverrides=",">
+			<if test="name!=null">name=#{name}</if>
+		</trim>
+		<trim prefix="SET" suffixOverrides=",">
+			<if test="description!=null">description=#{description}</if>
+		</trim>
+		<trim prefix="SET" suffixOverrides=",">
+			<if test="enable">enable=#{enable}</if>
+		</trim>
+		where id=#{id}
+	</update>
+</mapper>  

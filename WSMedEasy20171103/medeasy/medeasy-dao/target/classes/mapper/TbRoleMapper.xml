@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC   
+    "-//mybatis.org//DTD Mapper 3.0//EN"  
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.medimpact.medeasy.dao.security.TbRoleDao">
+	<!-- <cache type="org.mybatis.caches.ehcache.EhcacheCache" /> -->
+	<resultMap type="com.medimpact.medeasy.common.bean.TableRoleBi" id="ResultMap">
+		<id column="id" property="id" />		
+		<result column="role_name" property="roleName" />
+		<result column="operate_level" property="operateLevel" />
+	</resultMap>
+
+	<!--通过ID获取其子一级菜单 -->
+	<select id="getbRoleByCond" parameterType="com.medimpact.medeasy.common.bean.TableRoleBi" resultMap="ResultMap" useCache="false">
+		SELECT * from tb_role where role_name=#{roleName}		
+	</select>  
+	
+	<select id="getbRoleByUserName" parameterType="string" resultMap="ResultMap" useCache="false">
+		SELECT * 
+		FROM tb_role tbr, userbase ub, userbase_role ur ,role r
+		WHERE ub.id = ur.user_id 
+		AND ur.role_id = r.id	
+		AND r.role_name=tbr.role_name 
+		AND ub.username=#{username}
+	</select>
+	
+	<select id="list"  resultMap="ResultMap" useCache="true">
+		SELECT * from tb_role			
+	</select> 	
+	
+	
+	 <update id="updateOperateLevel" parameterType="com.medimpact.medeasy.common.bean.TableRoleBi">
+        UPDATE tb_role
+        <trim prefix="SET" suffixOverrides=",">         
+            
+            <if test="operateLevel!=null">
+                operate_level = #{operateLevel},
+            </if>
+            
+        </trim>
+        where role_name=#{roleName}
+    </update>
+    
+    <insert id="insert" parameterType="com.medimpact.medeasy.common.bean.TableRoleBi" >
+        INSERT INTO tb_role(role_name,operate_level) VALUES (#{roleName},#{operateLevel})
+    </insert>
+	
+</mapper>

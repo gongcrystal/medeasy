@@ -1,0 +1,13 @@
+package com.medimpact.medeasy.service.module;
+
+import java.util.List;
+import com.medimpact.medeasy.common.bean.ModuleBi;
+import com.medimpact.medeasy.common.exception.BizException;
+
+public interface ModuleService {
+	/*查询数据库，求得parentId的children */
+	public List<ModuleBi> listChildrenByParentId(Integer id) throws BizException;
+	/*采用递归的方法，求出menuId的所有chidren,以及children's children ...*/
+	public List<ModuleBi> listAllChildren(Integer moduleId)  throws BizException;
+
+}

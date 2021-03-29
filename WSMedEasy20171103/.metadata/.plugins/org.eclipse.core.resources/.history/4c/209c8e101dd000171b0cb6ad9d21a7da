@@ -1,0 +1,5 @@
+package com.medimpact.medeasy.common.bean;
+
+public class RoleMenuBi {
+
+}

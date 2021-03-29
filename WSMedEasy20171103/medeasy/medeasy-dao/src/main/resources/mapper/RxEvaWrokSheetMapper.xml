@@ -1,0 +1,202 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC   
+    "-//mybatis.org//DTD Mapper 3.0//EN"  
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.medimpact.medeasy.dao.bp.rxevawroksheet.RxEvaWrokSheetDao">
+
+	<!-- <cache type="org.mybatis.caches.ehcache.EhcacheCache" /> -->
+	<resultMap id="rxEvaWrokSheetDataMap" type="com.medimpact.medeasy.common.bean.bp.RxEvaWrokSheetBi">
+		<result property="rxCode" column="rx_code" />
+		<result property="rxDate" column="rx_date" />
+		<result property="age" column="age" />
+		<result property="diags" column="diags" />
+		<result property="drugVariety" column="drug_variety" />
+		<result property="isAbx" column="is_abx" />
+		<result property="isIv" column="is_iv" />
+		<result property="basicDrugVariety" column="basic_drug_variety" />
+		<result property="genNameCount" column="gen_name_count" />
+		<result property="amount" column="amount" />
+		<result property="doctorName" column="doctor_name" />
+		<result property="doctorCheck" column="doctor_check" />
+		<result property="doctorDispense" column="doctor_dispense" />
+		<result property="isOk" column="is_ok" />
+		<result property="irrerItemCode" column="irrer_item_code" />
+		<result property="evaPerson" column="eva_person" />
+	</resultMap>
+
+	<select id="getRxEvaWrokSheet" parameterType="com.medimpact.medeasy.common.bean.bp.RxEvaWrokSheetBi" resultMap="rxEvaWrokSheetDataMap">
+		SELECT
+			rxEva.rx_code,DATE_FORMAT(rxEva.rx_date,'%Y-%m-%d') as rx_date,rxEva.age,rxEva.diags,rxEva.drug_variety,rxEva.is_abx,
+			rxEva.is_iv,rxEva.basic_drug_variety,rxEva.gen_name_count,rxEva.amount,rxEva.doctor_name,
+			rxEva.doctor_check,rxEva.doctor_dispense,rxEva.is_ok,rxEva.irrer_item_code,rxEva.eva_person
+		FROM
+			subject_outpatient_rx_eva_3111 rxEva
+		JOIN dimension_patient_type patientType ON rxEva.dimension_patient_type = patientType.dimension_patient_type
+		<if test="basicDrugCategory != null and basicDrugCategory !='' and basicDrugCategory =='ZSJ' ">
+			and rxEva.is_iv='1'
+		</if>
+		JOIN dimension_hospital hospital ON rxEva.dimension_hospital_key = hospital.dimension_hospital_key
+		JOIN dimension_calander calander ON rxEva.dimension_calander_key = calander.dimension_calander_key
+
+		<if test="startDate!=null and startDate.trim()!=''">
+			<![CDATA[AND date_format(calander.full_day,'%Y-%m') >= #{startDate}]]>
+		</if>
+		<if test="endDate!=null and endDate.trim()!=''">
+			<![CDATA[AND date_format(calander.full_day,'%Y-%m') <= #{endDate}]]>
+		</if>
+
+		JOIN(
+			SELECT
+				DISTINCT rxdrug.rx_code
+			FROM 
+				subject_outpatient_rx_eva_rxdrug_3111 rxdrug
+			JOIN dimension_patient_type patientType ON rxdrug.dimension_patient_type = patientType.dimension_patient_type
+			JOIN dimension_hospital hospital ON rxdrug.dimension_hospital_key = hospital.dimension_hospital_key
+			JOIN dimension_calander calander ON rxdrug.dimension_calander_key = calander.dimension_calander_key
+			JOIN dimension_drug drug ON rxdrug.dimesion_drug_key = drug.dimesion_drug_key
+			<if test="basicDrugCategory != null and basicDrugCategory.trim() !='' and basicDrugCategory !='ZSJ' ">
+				and FIND_IN_SET(#{basicDrugCategory},drug.drug_basic_category) > 0
+			</if>
+			LEFT JOIN rx_evaluation_irrational_item irr ON rxdrug.rx_evaluation_irrational_item_id = irr.rx_evaluation_irrational_item_id
+			<include refid="drugCon"></include>
+			WHERE 1 = 1
+			<include refid="serCondition"></include>
+			<include refid="operateCon"></include>
+		)a ON rxEva.rx_code = a.rx_code
+		order by rxEva.rx_code desc
+	</select>
+
+	<resultMap id="rxEvaWrokSheetStatisticDataMap" type="com.medimpact.medeasy.common.bean.bp.RxEvaWrokSheetBi">
+		<result property="rxCode" column="rx_code" />
+
+		<result property="drugVariety" column="drug_variety" />
+		<result property="isAbx" column="is_abx" />
+		<result property="isIv" column="is_iv" />
+		<result property="isOk" column="is_ok" />
+		<result property="basicDrugVariety" column="basic_drug_variety" />
+		<result property="genNameCount" column="gen_name_count" />
+		<result property="amount" column="amount" />
+
+		<result property="avgDrugVariety" column="avg_drug_variety" />
+		<result property="avgAmount" column="avg_amount" />
+
+		<result property="avgBasicDrugVariety" column="p_basic_drug_variety" />
+		<result property="avgGenNameCount" column="p_gen_name_count" />
+		<result property="ivPercentage" column="p_iv" />
+		<result property="abxPercentage" column="p_abx" />
+		<result property="okPercentage" column="p_ok" />
+	</resultMap>
+
+	<select id="getRxEvaWrokSheetStatistic" parameterType="com.medimpact.medeasy.common.bean.bp.RxEvaWrokSheetBi" resultMap="rxEvaWrokSheetStatisticDataMap">
+		SELECT
+				'统计值' rx_code,
+				sum(rxEva.drug_variety) drug_variety,
+				sum(rxEva.is_abx) is_abx,
+				sum(rxEva.is_iv) is_iv,
+				sum(rxEva.basic_drug_variety) basic_drug_variety,
+				sum(rxEva.gen_name_count) gen_name_count,
+				CONVERT(sum(rxEva.amount),DECIMAL(20,2)) amount,
+				sum(rxEva.is_ok) is_ok,
+				CONVERT(avg(rxEva.drug_variety),DECIMAL(20,2)) avg_drug_variety,
+				CONVERT(avg(rxEva.amount),DECIMAL(20,2)) avg_amount,
+				CONVERT(sum(rxEva.is_abx)/count(1)*100,DECIMAL(20,2)) p_abx,
+				CONVERT(sum(rxEva.is_iv)/count(1)*100,DECIMAL(20,2)) p_iv,
+				CONVERT(sum(rxEva.is_ok)/count(1)*100,DECIMAL(20,2)) p_ok,
+				CONVERT(sum(rxEva.basic_drug_variety)/sum(rxEva.drug_variety)*100,DECIMAL(20,2)) p_basic_drug_variety,
+				CONVERT(sum(rxEva.gen_name_count)/sum(rxEva.drug_variety)*100,DECIMAL(20,2)) p_gen_name_count
+		FROM
+		subject_outpatient_rx_eva_3111 rxEva
+		JOIN dimension_patient_type patientType ON rxEva.dimension_patient_type = patientType.dimension_patient_type
+		<if test="basicDrugCategory != null and basicDrugCategory !='' and basicDrugCategory =='ZSJ' ">
+			and rxEva.is_iv='1'
+		</if>
+		JOIN dimension_hospital hospital ON rxEva.dimension_hospital_key = hospital.dimension_hospital_key
+		JOIN dimension_calander calander ON rxEva.dimension_calander_key = calander.dimension_calander_key
+
+		<if test="startDate!=null and startDate.trim()!=''">
+			<![CDATA[AND date_format(calander.full_day,'%Y-%m') >= #{startDate}]]>
+		</if>
+		<if test="endDate!=null and endDate.trim()!=''">
+			<![CDATA[AND date_format(calander.full_day,'%Y-%m') <= #{endDate}]]>
+		</if>
+
+		JOIN(
+		SELECT
+		DISTINCT rxdrug.rx_code
+		FROM
+		subject_outpatient_rx_eva_rxdrug_3111 rxdrug
+		JOIN dimension_patient_type patientType ON rxdrug.dimension_patient_type = patientType.dimension_patient_type
+		JOIN dimension_hospital hospital ON rxdrug.dimension_hospital_key = hospital.dimension_hospital_key
+		JOIN dimension_calander calander ON rxdrug.dimension_calander_key = calander.dimension_calander_key
+		JOIN dimension_drug drug ON rxdrug.dimesion_drug_key = drug.dimesion_drug_key
+		<if test="basicDrugCategory != null and basicDrugCategory.trim() !='' and basicDrugCategory !='ZSJ' ">
+			and FIND_IN_SET(#{basicDrugCategory},drug.drug_basic_category) > 0
+		</if>
+		LEFT JOIN rx_evaluation_irrational_item irr ON rxdrug.rx_evaluation_irrational_item_id = irr.rx_evaluation_irrational_item_id
+		<include refid="drugCon"></include>
+		WHERE 1 = 1
+		<include refid="serCondition"></include>
+		<include refid="operateCon"></include>
+		)a ON rxEva.rx_code = a.rx_code
+		order by rxEva.rx_code desc
+	</select>
+	
+	<sql id="serCondition">
+		<if test="patientTypeKey != null and patientTypeKey.trim() !='' and patientTypeKey=='OUTPATIENT_URGENT' ">
+			and (patientType.patient_type_code='OUTPATIENT' or patientType.patient_type_code='URGENT_CARE')
+		</if>
+		<if test="patientTypeKey != null and patientTypeKey.trim() !='' and patientTypeKey!='OUTPATIENT_URGENT' ">
+			and patientType.patient_type_code=#{patientTypeKey}
+		</if>
+		<if test="irrCode!=null and irrCode.trim()!=''">
+			AND irr.irrational_item_code = #{irrCode}
+		</if>
+	</sql>
+	
+	<sql id="operateCon">
+		<if test="operateLevel==1">
+			<if test="areaKey!=null and areaKey.trim()!=''">
+				AND hospital.area_code = #{areaKey}
+			</if>
+			<if test="hospitalKey!=null and hospitalKey.trim()!=''">
+				AND hospital.hospital_code = #{hospitalKey}
+			</if>
+		</if>
+		<if test="operateLevel==2">
+			AND hospital.area_code = #{secUser.areaCode}
+			<if test="hospitalKey!=null and hospitalKey.trim()!=''">
+				AND hospital.hospital_code = #{hospitalKey}
+			</if>
+		</if>
+		<if test="operateLevel==3">
+			AND hospital.hospital_code = #{secUser.hospitalCode}
+		</if>
+		<if test="operateLevel==6">
+			AND hospital.hospital_code = #{secUser.hospitalCode}
+			AND  1==2  -- 当前报表目前不支持医生级别数据权限
+		</if>
+	</sql>
+
+	<sql id="drugCon">
+		<if test="basicDrugCategory == null or basicDrugCategory.trim() =='' ">
+			<if test="drugClassBtndrugid!=null and drugClassBtndrugid.trim()!=''">
+				JOIN (
+					SELECT drug_code FROM dimension_drug WHERE FIND_IN_SET(drug_code,#{drugClassBtndrugid}) > 0
+				)selDrug ON drug.drug_code = selDrug.drug_code
+			</if>
+			<if test="drugClassBtndrugcategoryid!=null and drugClassBtndrugcategoryid.trim()!=''">
+				JOIN(
+					SELECT
+						DISTINCT dd.LOCAL_DRUG_ID
+					FROM
+						drug_category dc,drug_category_mapping dm,drug dd
+					WHERE dc.drug_category_id = dm.drug_category_id
+					AND dd.DRUG_ID = dm.DRUG_ID
+					and dc.drug_category_type=0
+					AND FIND_IN_SET(category_code,#{drugClassBtndrugcategoryid}) > 0
+				)selDrug ON drug.drug_code = selDrug.LOCAL_DRUG_ID
+			</if>
+		</if>
+	</sql>
+	
+</mapper>  

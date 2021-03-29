@@ -1,0 +1,5 @@
+package com.medimpact.medeasy.dao.menu;
+
+public interface RoleMenuDao {
+
+}

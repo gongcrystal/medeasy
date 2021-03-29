@@ -1,0 +1,5 @@
+package com.medimpact.medeasy.dao.security;
+
+public class ModuleDao {
+
+}
